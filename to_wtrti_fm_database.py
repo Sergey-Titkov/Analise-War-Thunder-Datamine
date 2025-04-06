@@ -8,8 +8,8 @@ dir_path = '.\\flightmodels\\'
 # Список самолетов который нам интересен, если пусто, то обработаем все
 list_plane = [
     'su_27sm',
-    'su_30sm'#,
-    #'f-4s'
+    'su_30sm',
+    'f-4s'
 ]
 
 # Тело cvs файла fm_names_db.csv
@@ -46,7 +46,7 @@ for file in res:
 
             # Заполняем информацию по наименованию самолета
             cvs_row_name['Name'] = main_data['model']
-            cvs_row_name['FmName'] = main_data['fmFile']
+            cvs_row_name['FmName'] = main_data['fmFile'].replace('fm/','').replace('.blk','')
             #cvs_name['Type'] =
             # cvs_name['English'] =
 
@@ -58,17 +58,38 @@ for file in res:
                 # Прочитали данные из флайт модели
                 fm_data = json.load(fm_file)
                 cvs_row_data['Length'] = fm_data['Length']
-                cvs_row_data['WingSpan'] = fm_data['Aerodynamics']['WingPlane']['Span']
-                cvs_row_data['WingArea'] = fm_data['Aerodynamics']['WingPlane']["Areas"]["LeftIn"] + \
+
+                if 'Aerodynamics' in fm_data and 'WingPlane' in fm_data['Aerodynamics'] and 'Span' in fm_data['Aerodynamics']['WingPlane']:
+                    cvs_row_data['WingSpan'] = fm_data['Aerodynamics']['WingPlane']['Span']
+                else:
+                    cvs_row_data['WingSpan'] = fm_data['Wingspan']
+
+                if 'Aerodynamics' in fm_data and 'WingPlane' in fm_data['Aerodynamics'] and 'Areas' in fm_data['Aerodynamics']['WingPlane']:
+                    cvs_row_data['WingArea'] = fm_data['Aerodynamics']['WingPlane']["Areas"]["LeftIn"] + \
                                            fm_data['Aerodynamics']['WingPlane']["Areas"]["LeftMid"] + \
                                            fm_data['Aerodynamics']['WingPlane']["Areas"]["LeftOut"] + \
                                            fm_data['Aerodynamics']['WingPlane']["Areas"]["RightIn"] + \
                                            fm_data['Aerodynamics']['WingPlane']["Areas"]["RightMid"] + \
                                            fm_data['Aerodynamics']['WingPlane']["Areas"]["RightOut"]
+                else:
+                    cvs_row_data['WingArea'] = fm_data["Areas"]["WingLeftIn"] + \
+                                           fm_data["Areas"]["WingLeftMid"] + \
+                                           fm_data["Areas"]["WingLeftOut"] + \
+                                           fm_data["Areas"]["WingRightIn"] + \
+                                           fm_data["Areas"]["WingRightMid"] + \
+                                           fm_data["Areas"]["WingRightOut"]
+
                 cvs_row_data['EmptyMass'] = int(fm_data['Mass']['EmptyMass'])
                 cvs_row_data['MaxFuelMass'] = int(fm_data['Mass']['MaxFuelMass0'])
-                cvs_row_data['CritAirSpd'] = int(fm_data['Aerodynamics']['WingPlane']['Strength']['VNE'])
-                cvs_row_data['CritAirSpdMach'] = (fm_data['Aerodynamics']['WingPlane']['Strength']['MNE'])
+
+                if 'Aerodynamics' in fm_data and 'WingPlane' in fm_data['Aerodynamics'] and 'Strength' in fm_data['Aerodynamics']['WingPlane']:
+                    cvs_row_data['CritAirSpd'] = int(fm_data['Aerodynamics']['WingPlane']['Strength']['VNE'])
+                    cvs_row_data['CritAirSpdMach'] = (fm_data['Aerodynamics']['WingPlane']['Strength']['MNE'])
+                else:
+                    cvs_row_data['CritAirSpd'] = int(fm_data['Vne'])
+                    cvs_row_data['CritAirSpdMach'] = (fm_data['VneMach'])
+
+
                 cvs_row_data['CritGearSpd'] = int(fm_data['Mass']['GearDestructionIndSpeed'])
 
                 ## Вынули АССОЦИАТИВНЫЙ масив с данными по массе. Там их много
