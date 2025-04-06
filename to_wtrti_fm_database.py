@@ -125,6 +125,25 @@ for file in res:
                     cvs_row_data[
                         'CritWingOverload'] = f'{fm_data["Mass"]["WingCritOverload"][0]},{fm_data["Mass"]["WingCritOverload"][1]}'
 
+                cvs_row_data['NumEngines'] = int(0)
+                if "Engine0" in fm_data:
+                    cvs_row_data['NumEngines'] = cvs_row_data['NumEngines'] + 1
+
+                if "Engine1" in fm_data:
+                    cvs_row_data['NumEngines'] = cvs_row_data['NumEngines'] + 1
+
+                cvs_row_data['RPM'] = f'{int(fm_data["EngineType0"]["Main"]["RPMMin"])},{int(fm_data["EngineType0"]["Main"]["RPMAfterburner"])},{int(fm_data["EngineType0"]["Main"]["RPMMaxAllowed"])}'
+
+                cvs_row_data['MaxNitro'] = fm_data["Mass"]["MaxNitro"]
+
+                cvs_row_data['NitroConsum'] = fm_data["EngineType0"]["Afterburner"]["NitroConsumption"]
+
+
+                if 'Aerodynamics' in fm_data and 'WingPlane' in fm_data['Aerodynamics'] and 'FlapsPolar0' in fm_data['Aerodynamics']['WingPlane']:
+                    cvs_row_data['CritAoA'] = f'{int(fm_data["Aerodynamics"]["WingPlane"]["FlapsPolar0"]["alphaCritLow"])},{int(fm_data["Aerodynamics"]["WingPlane"]["FlapsPolar1"]["alphaCritHigh"])},{int(fm_data["Aerodynamics"]["WingPlane"]["FlapsPolar1"]["alphaCritLow"])}'
+                else:
+                    cvs_row_data['CritAoA'] = f'{int(fm_data["Aerodynamics"]["NoFlaps"]["alphaCritLow"])},{int(fm_data["Aerodynamics"]["FullFlaps"]["alphaCritHigh"])},{int(fm_data["Aerodynamics"]["FullFlaps"]["alphaCritLow"])}'
+#
                 ## Вынули АССОЦИАТИВНЫЙ масив с данными по массе. Там их много
                 # mass = fm_data['Mass']
                 # Выкинули нафиг .0 и занесли в нашу строку
@@ -149,7 +168,7 @@ with open('fm_names_db.csv', 'w', newline='') as csvfile:
 with open('fm_data_db.csv', 'w', newline='') as csvfile:
     # Это заголовки, они совпадают с ключами в нашем ассоциативном массиве с информацией о самолетоах
     fieldnames = ['Name', 'Length', 'WingSpan', 'WingArea', 'EmptyMass', 'MaxFuelMass', 'CritAirSpd', 'CritAirSpdMach',
-                  'CritGearSpd', 'CombatFlaps', 'TakeoffFlaps', 'CritFlapsSpd','CritWingOverload']
+                  'CritGearSpd', 'CombatFlaps', 'TakeoffFlaps', 'CritFlapsSpd','CritWingOverload','NumEngines','RPM','MaxNitro','NitroConsum','CritAoA']
     # Магия что бы excel открыл файл нормально
     writer = csv.DictWriter(csvfile, dialect='excel', delimiter=';', fieldnames=fieldnames)
     # Записываем заголовок
