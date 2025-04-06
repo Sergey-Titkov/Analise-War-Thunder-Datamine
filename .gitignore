@@ -174,3 +174,4 @@ cython_debug/
 .pypirc
 /.idea/*
 *.csv
+/War-Thunder-Datamine-master/
