@@ -1,6 +1,7 @@
 import json
 import glob
 import csv
+import wt_datamine
 
 # Каталог откуда считываем основные модели
 root_dir = '.\\War-Thunder-Datamine-master\\'
@@ -1417,6 +1418,8 @@ list_plane = [
     'z_9wa'
 ]
 
+units_name = wt_datamine.units_name()
+
 # Тело cvs файла fm_names_db.csv
 cvs_name = []
 # Тело cvs файла fm_data_db.csv
@@ -1469,13 +1472,7 @@ for file in res:
             else:
                 print(f'{short_file_name} - не определили тип самолета')
                 cvs_row_name['Type'] = 'fighter'
-
-            with open(f'{lang_dir}\\units.csv', newline='', encoding='utf-8') as csvfile:
-                spamreader = csv.reader(csvfile, delimiter=';')
-                for row in spamreader:
-                    if row[0] == f'{cvs_row_name['Name']}_shop':
-                        cvs_row_name['English'] = row[1]
-                        break
+            cvs_row_name['English'] = units_name[f'{cvs_row_name['Name']}_shop']
 
             # Добавлям в нашу строку для  CSV модель самолета
             cvs_row_data['Name'] = main_data['model']
