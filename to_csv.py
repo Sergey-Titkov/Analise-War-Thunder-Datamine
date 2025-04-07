@@ -10,6 +10,7 @@ list_plane = [
     'tornado_adv',
     'su-7bmk',
     'mirage_f1c_200',
+
 ]
 
 # Тело cvs файла, пока пустое
