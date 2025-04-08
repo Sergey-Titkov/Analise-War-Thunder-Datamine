@@ -1435,13 +1435,32 @@ if __name__ == "__main__":
         # С названием самолетов, возня.
         # Убираем из строки все не ASCII символы
         tmp = plane_datamine.name['English'].replace('\xa0', ' ').encode('ascii', errors='ignore').decode()
-        add_pattern = {'china': 'China', 'usa': 'USA', 'ussr': 'USSR', 'iaf': 'Israel'}
+        add_pattern = {
+            'china': 'China',
+            'usa': 'USA',
+            'ussr': 'USSR',
+            'iaf': 'Israel',
+            'thailand': 'Thailand',
+            'a_4h': 'Israel',
+            'a_4n': 'Israel',
+            'ah_1s_early': 'Japan',
+            'ah_64a_peten': 'USA',
+            'netherlands': 'Netherlands',
+            'japan': 'Japan',
+            'italy': 'Italy',
+            'france': 'France',
+            'germany': 'Germany',
+            'b-29_killstreak': 'b-29_killstreak',
+            'sweden': 'Sweden',
+            'uk': 'Britain',
+            'finland': 'Finland',
+            'hungary': 'Hungary'
+        }
         for key in add_pattern:
             if plane_datamine.id.find(key) >= 0:
                 tmp = f'{tmp} ({add_pattern[key]})'
                 break
         cvs_row_name['English'] = tmp
-
 
         cvs_row_name['Type'] = plane_datamine.type
 
@@ -1463,9 +1482,11 @@ if __name__ == "__main__":
 
     with open('fm_data_db.csv', 'w', newline='', encoding='utf-8') as csvfile:
         # Это заголовки, они совпадают с ключами в нашем ассоциативном массиве с информацией о самолетоах
-        fieldnames = ['Name', 'Length', 'WingSpan', 'WingArea', 'EmptyMass', 'MaxFuelMass', 'CritAirSpd', 'CritAirSpdMach',
-                  'CritGearSpd', 'CombatFlaps', 'TakeoffFlaps', 'CritFlapsSpd', 'CritWingOverload', 'NumEngines', 'RPM',
-                  'MaxNitro', 'NitroConsum', 'CritAoA']
+        fieldnames = ['Name', 'Length', 'WingSpan', 'WingArea', 'EmptyMass', 'MaxFuelMass', 'CritAirSpd',
+                      'CritAirSpdMach',
+                      'CritGearSpd', 'CombatFlaps', 'TakeoffFlaps', 'CritFlapsSpd', 'CritWingOverload', 'NumEngines',
+                      'RPM',
+                      'MaxNitro', 'NitroConsum', 'CritAoA']
         # Магия что бы excel открыл файл нормально
         writer = csv.DictWriter(csvfile, dialect='excel', delimiter=';', fieldnames=fieldnames)
         # Записываем заголовок
@@ -1473,4 +1494,3 @@ if __name__ == "__main__":
         # Записываем тело
         for row in cvs_data:
             writer.writerow(row)
-

@@ -40,11 +40,21 @@ class plane_datamine:
     # Определям тип самолета
     def _get_type(self, json_data):
         result = ''
+        # тут начались танцы с бубном
+        # if 'type' in json_data:
+        #             types = json_data['type']
+        #   for item in types:
+        #       if item == 'typeBomber':
+        #           result = 'bomber'
+        #           break
+        #   if result == '':
+        #        logging.warning(f'Самолет:{self.id} - тип самолета не найден')
+        # else:
         if 'fightAiBehaviour' in json_data:
-            if isinstance(json_data['fightAiBehaviour'], list):
-                result = json_data['fightAiBehaviour'][0].replace('assault', 'strike')
-            else:
-                result = json_data['fightAiBehaviour'].replace('assault', 'strike')
+           if isinstance(json_data['fightAiBehaviour'], list):
+              result = json_data['fightAiBehaviour'][0].replace('assault', 'strike')
+           else:
+              result = json_data['fightAiBehaviour'].replace('assault', 'strike')
         else:
             logging.warning(f'Самолет:{self.id} - тип самолета не найден')
             result = 'fighter'
