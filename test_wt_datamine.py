@@ -1420,6 +1420,9 @@ if __name__ == "__main__":
     # Тело cvs файла fm_data_db.csv
     cvs_data = []
 
+    #list_plane = ['c-47']
+
+
     for plane_id in list_plane:
         # Готовим для него строку
         cvs_row_name = {}
@@ -1441,6 +1444,8 @@ if __name__ == "__main__":
             'ussr': 'USSR',
             'iaf': 'Israel',
             'thailand': 'Thailand',
+            'belgium': 'Belgium',
+            'norway': 'Norway',
             'a_4h': 'Israel',
             'a_4n': 'Israel',
             'ah_1s_early': 'Japan',
@@ -1450,11 +1455,18 @@ if __name__ == "__main__":
             'italy': 'Italy',
             'france': 'France',
             'germany': 'Germany',
+            'holland': 'Netherlands',
             'b-29_killstreak': 'b-29_killstreak',
             'sweden': 'Sweden',
             'uk': 'Britain',
             'finland': 'Finland',
-            'hungary': 'Hungary'
+            'hungary': 'Hungary',
+            'canberra_bimk6_killstreak': 'canberra_bimk6_killstreak',
+            'f-104g': 'Germany',
+            'ef_2000_block_10': 'Germany',
+            'f-4f': 'Germany',
+            'f-4f_kws_lv': 'Germany',
+            'f-4f_late': 'Germany'
         }
         for key in add_pattern:
             if plane_datamine.id.find(key) >= 0:
@@ -1462,7 +1474,15 @@ if __name__ == "__main__":
                 break
         cvs_row_name['English'] = tmp
 
-        cvs_row_name['Type'] = plane_datamine.type
+        # Ну окей, подстроюсь
+        type_replace_lists = {
+            'do_17z_7': 'bomber',
+            'do_217j_1': 'bomber',
+            'do_217j_2': 'bomber',
+            'do_217n_1': 'bomber',
+            'do_217n_2': 'bomber'
+        }
+        cvs_row_name['Type'] = type_replace_lists.get(plane_datamine.id,plane_datamine.type.replace('assault', 'strike'))
 
         # Добавили строку к нашему тельцу cvs файла
         cvs_name.append(cvs_row_name)

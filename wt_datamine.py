@@ -40,24 +40,35 @@ class plane_datamine:
     # Определям тип самолета
     def _get_type(self, json_data):
         result = ''
-        # тут начались танцы с бубном
-        # if 'type' in json_data:
-        #             types = json_data['type']
-        #   for item in types:
-        #       if item == 'typeBomber':
-        #           result = 'bomber'
-        #           break
-        #   if result == '':
-        #        logging.warning(f'Самолет:{self.id} - тип самолета не найден')
-        # else:
+        # тут начались танцы с бубном, е...кие.
+        etalon_types = ['bomber', 'assault', 'fighter', 'helicopter']
+        json_types = ['typeBomber', 'typeAssault', 'typeFighter']
+        # Тип самолета это еще та угадайка
+
+        # Тип смотрим на то как себя ведет он по аишному, причем может вести себя сильно по разному :) списочком
         if 'fightAiBehaviour' in json_data:
            if isinstance(json_data['fightAiBehaviour'], list):
-              result = json_data['fightAiBehaviour'][0].replace('assault', 'strike')
+               for item in json_data['fightAiBehaviour']:
+                   if item in json_types:
+                    result = item.replace('type', '').lower()
+                    break
            else:
-              result = json_data['fightAiBehaviour'].replace('assault', 'strike')
-        else:
+              result = json_data['fightAiBehaviour']
+
+        # Продолжаем искать
+        if result not in etalon_types:
+            if 'type' in json_data:
+                if isinstance(json_data['type'], list):
+                    for item in json_data['type']:
+                        if item in json_types:
+                            result = item.replace('type','').lower()
+                            break
+                else:
+                    result = json_data['type'].replace('type','').lower()
+
+        # Проверям финальный вариант
+        if result not in etalon_types:
             logging.warning(f'Самолет:{self.id} - тип самолета не найден')
-            result = 'fighter'
         return result
 
     # Получаем флайт модель самолета
