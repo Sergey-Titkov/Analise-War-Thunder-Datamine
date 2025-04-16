@@ -1414,14 +1414,15 @@ list_plane = [
     'z_9wa'
 ]
 
+list_plane = ['il-2m_mstitel']
+
 if __name__ == "__main__":
     # Тело cvs файла fm_names_db.csv
     cvs_name = []
     # Тело cvs файла fm_data_db.csv
     cvs_data = []
 
-    #list_plane = ['c-47']
-
+    # list_plane = ['c-47']
 
     for plane_id in list_plane:
         # Готовим для него строку
@@ -1432,35 +1433,97 @@ if __name__ == "__main__":
 
         # Заполняем информацию по наименованию самолета
         cvs_row_name['Name'] = plane_datamine.id
+
         # Да, вседа в нижнем регистре
-        cvs_row_name['FmName'] = plane_datamine.flight_model.lower()
+        # Ебанный ручной привод
+        type_replace_lists = {
+            'sm_79_1937_italy': 'sm_79_1937_italy',
+            'sm_79_1942_italy': 'sm_79_1942_italy',
+            'spitfire_ix_tutorial': 'spitfire_ix_tutorial',
+            'fw-190a-5_cannons_tutorial': 'fw-190a-5_cannons_tutorial',
+            'hurricane_mk1_late': 'hurricane_mk1_late'
+        }
+        cvs_row_name['FmName'] = type_replace_lists.get(plane_datamine.id, plane_datamine.flight_model.lower())
 
         # С названием самолетов, возня.
         # Убираем из строки все не ASCII символы
-        tmp = plane_datamine.name['English'].replace('\xa0', ' ').encode('ascii', errors='ignore').decode()
+        # tmp = plane_datamine.name['English'].replace('\xa0', ' ').encode('ascii', errors='ignore').decode()
+        tmp = plane_datamine.name['English'].replace('\xa0', ' ')
+
+        for i, c in enumerate(tmp):
+            if 32 <= ord(c) <= 126:
+                tmp = tmp[i:]
+                break
+
+        end = len(tmp) - 1
+        while end >= 0 and ord(tmp[end]) < 32 or ord(tmp[end]) > 126:
+            end -= 1
+        count_to_delete = -1 * (len(tmp) - end - 1)
+        if count_to_delete < 0:
+            tmp = tmp[:count_to_delete]
+
+        tmp = tmp.replace('▅', '')
+
+        tmp = tmp.strip('"').replace('""', '"')
+
+        # Какой же это ебанный пиздец
         add_pattern = {
-            'china': 'China',
-            'usa': 'USA',
-            'ussr': 'USSR',
-            'iaf': 'Israel',
-            'thailand': 'Thailand',
-            'belgium': 'Belgium',
-            'norway': 'Norway',
+            'i-153_m62_zhukovskiy': '',
+            'kitsuka': '',
+            'mi_28a_sweden': '',
+            'mig-9_ussr': '',
+            'p-51b_7_sweden': '',
+            'ucav_mq_1_predator_germany_killstreak': '',
+            'ucav_mq_1_predator_sweden_killstreak': '',
+            'il_2_1942_luftwaffe': 'Germany',
+            'j2m5_30mm': '30mm',
+            'j_8f_missile_test': 'Missile Test',
+            'jaguar_a_killstreak': 'jaguar_a_killstreak',
+            'kfir_c10_colombia': 'Colombia',
+            'ki_43_2_late': 'USA',
+            'ki_43_3_ko': 'China',
+            'la-5fn_luftwaffe': 'Germany',
+            'mc-202': 'Germany',
+            'mc200_serie3': 'Germany',
+            'mc200_serie7': 'Germany',
+            'md_460_yt_cup_2019': 'France',
+            'meteor_nfmk13': 'Israel',
+            'mi_24d': 'USSR',
+            'mig_29_9_12g': 'Germany',
+            'mig_29smt_9_19_missile_test': 'Missile Test',
+            'mirage_2000_5ei': 'China',
+            'mirage_2000_5f_missile_test': 'Missile Test',
+            'p-51k': 'China',
+            'p-63c-5_kingcobra_animal_version': 'USA',
+            'tu_4_killstreak': 'tu_4_killstreak',
+            'uh_1d': 'Germany',
+            'wellington_mk1c_luftwaffe': 'Germany',
+            'yak-1b_luftwaffe': 'Germany',
+            'sm_79_1943': 'Germany',
+            'sm_79_iar': 'Germany',
+            'sm_79_1939': 'Germany',
+            'sm_79_1941': 'Germany',
+            'sm_79_1942': 'Germany',
+            'sm_79_1936': 'Germany',
+            'sm_79_1937': 'Germany',
+            'sa_313b': 'Germany',
+            'mig_23bn': 'Germany',
+            'mig_23mla': 'Germany',
+            'mig-21_bis_sau': 'Germany',
+            'mig-21_mf': 'Germany',
+            'mig-21_sps_k': 'Germany',
+            'mi_8tb': 'Germany',
+            'mig-15bis_nr23_german': 'Germany',
+            'mig-17p_lim_5p': 'Germany',
+            'mig-19s': 'Germany',
+            'mig-21_bis_lazur': 'Germany',
+            'mi_24p_german': 'Germany',
+            'mi_24p_german_hfs80': 'Germany',
             'a_4h': 'Israel',
             'a_4n': 'Israel',
             'ah_1s_early': 'Japan',
             'ah_64a_peten': 'USA',
-            'netherlands': 'Netherlands',
-            'japan': 'Japan',
-            'italy': 'Italy',
-            'france': 'France',
-            'germany': 'Germany',
-            'holland': 'Netherlands',
             'b-29_killstreak': 'b-29_killstreak',
-            'sweden': 'Sweden',
-            'uk': 'Britain',
-            'finland': 'Finland',
-            'hungary': 'Hungary',
             'canberra_bimk6_killstreak': 'canberra_bimk6_killstreak',
             'f-104g': 'Germany',
             'ef_2000_block_10': 'Germany',
@@ -1506,23 +1569,68 @@ if __name__ == "__main__":
             'p-39n_su': 'USSR',
             'p-39q_15': 'USSR',
             'p-47d_luftwaffe': 'Germany',
-            'p-47m-1-re_boxted': 'USA'
+            'p-47m-1-re_boxted': 'USA',
+            'he_115a_2_sweden': '',
+            'hunter_f50_sweden': '',
+
         }
+        replace_occur_by_plane_id = False
         for key in add_pattern:
-            if plane_datamine.id.find(key) >= 0:
-                tmp = f'{tmp} ({add_pattern[key]})'
+            if plane_datamine.id == key:
+                if add_pattern[key]:
+                    tmp = f'{tmp} ({add_pattern[key]})'
+                replace_occur_by_plane_id = True
                 break
+
+        add_pattern = {
+            'china': 'China',
+            'usa': 'USA',
+            'ussr': 'USSR',
+            '_iaf': 'Israel',
+            'thailand': 'Thailand',
+            'belgium': 'Belgium',
+            'norway': 'Norway',
+            'netherlands': 'Netherlands',
+            'japan': 'Japan',
+            'italy': 'Italy',
+            'france': 'France',
+            'germany': 'Germany',
+            'holland': 'Netherlands',
+            'sweden': 'Sweden',
+            'uk': 'Britain',
+            'finland': 'Finland',
+            'hungary': 'Hungary',
+        }
+        # Если была замена по имени самолета, то по стране уже не меняем
+        if not replace_occur_by_plane_id:
+            for key in add_pattern:
+                if plane_datamine.id.find(key) >= 0:
+                    tmp = f'{tmp} ({add_pattern[key]})'
+                    break
+
         cvs_row_name['English'] = tmp
 
         # Ну окей, подстроюсь
         type_replace_lists = {
+            'j1n1_mod11_early': 'bomber',
+            'j5n1': 'bomber',
+            'ju-388j': 'bomber',
+            'ju-88c-6': 'bomber',
+            'ki-83': 'bomber',
+            'ki-96': 'bomber',
+            'ki_102_otsu': 'bomber',
+            'ki_108': 'bomber',
+            'whirlwind_mk1': 'bomber',
+            'whirlwind_p9': 'bomber',
             'do_17z_7': 'bomber',
             'do_217j_1': 'bomber',
             'do_217j_2': 'bomber',
             'do_217n_1': 'bomber',
-            'do_217n_2': 'bomber'
+            'do_217n_2': 'bomber',
+            'fau-1': 'fighter'
         }
-        cvs_row_name['Type'] = type_replace_lists.get(plane_datamine.id,plane_datamine.type.replace('assault', 'strike'))
+        cvs_row_name['Type'] = type_replace_lists.get(plane_datamine.id,
+                                                      plane_datamine.type.replace('assault', 'strike'))
 
         # Добавили строку к нашему тельцу cvs файла
         cvs_name.append(cvs_row_name)
@@ -1533,10 +1641,15 @@ if __name__ == "__main__":
         # Это заголовки, они совпадают с ключами в нашем ассоциативном массиве с информацией о самолетоах
         fieldnames = ['Name', 'FmName', 'Type', 'English']
         # Магия что бы excel открыл файл нормально
-        writer = csv.DictWriter(csvfile, dialect='excel', delimiter=';', fieldnames=fieldnames)
-        # Записываем заголовок
+        writer = csv.DictWriter(
+            csvfile,
+            delimiter=';',
+            fieldnames=fieldnames,
+            quoting=csv.QUOTE_NONE,  # Отключаем автоматическое экранирование
+            escapechar='"'  # Указываем кавычку как escape-символ
+        )
+
         writer.writeheader()
-        # Записываем тело
         for row in cvs_name:
             writer.writerow(row)
 

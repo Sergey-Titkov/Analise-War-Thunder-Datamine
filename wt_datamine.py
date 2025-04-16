@@ -1,6 +1,7 @@
 import csv
 import json
 import logging
+import os
 
 root_dir = '.\\War-Thunder-Datamine-master\\'
 lang_dir = f'{root_dir}\\lang.vromfs.bin_u\\lang\\'
@@ -79,9 +80,10 @@ class plane_datamine:
             # Может быть несколько флайт моделей, но беру последнею, потому что для последней есть файл, по идее надо
             # перебрать все файлы, но мне лень.
             if isinstance(json_data['fmFile'], list):
-                result = json_data['fmFile'][1].replace('fm/', '').replace('.blk', '')
+                result = json_data['fmFile'][1]
             else:
-                result = json_data['fmFile'].replace('fm/', '').replace('.blk', '')
+                result = json_data['fmFile']
+            result = os.path.basename(result).replace('.blk', '')
         else:
             logging.info(f'Самолет:{self.id} - файл флайт модели не найден')
             result = self.id
