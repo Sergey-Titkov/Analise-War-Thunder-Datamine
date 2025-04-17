@@ -177,7 +177,7 @@ class plane_datamine:
         """
         result = 0
         if 'Mass' in json_data and 'MaxFuelMass0' in json_data['Mass']:
-            result = int(json_data['Mass']['MaxFuelMass0'])
+            result = json_data['Mass']['MaxFuelMass0']
         else:
             logging.warning(f'Самолет:{self.id} - максимальную массу топлива не нашли')
         return result
@@ -242,7 +242,7 @@ class plane_datamine:
         """
         result = 0
         if 'Mass' in json_data and 'GearDestructionIndSpeed' in json_data['Mass']:
-            result = int(json_data['Mass']['GearDestructionIndSpeed'])
+            result = json_data['Mass']['GearDestructionIndSpeed']
         else:
             logging.warning(f'Самолет:{self.id} - скорость разрушения шасси не нашли')
         return result
@@ -255,10 +255,10 @@ class plane_datamine:
         result = {}
         if 'Aerodynamics' in json_data and "FlapsAxis" in json_data['Aerodynamics']:
             if json_data['Aerodynamics']["FlapsAxis"]["Combat"]["Presents"]:
-                result['Combat'] = int(json_data['Aerodynamics']["FlapsAxis"]["Combat"]["Flaps"] * 100)
+                result['Combat'] = json_data['Aerodynamics']["FlapsAxis"]["Combat"]["Flaps"] * 100
 
             if json_data['Aerodynamics']["FlapsAxis"]["Takeoff"]["Presents"]:
-                result['Takeoff'] = int(json_data['Aerodynamics']["FlapsAxis"]["Takeoff"]["Flaps"] * 100)
+                result['Takeoff'] = json_data['Aerodynamics']["FlapsAxis"]["Takeoff"]["Flaps"] * 100
         else:
             logging.warning(f'Самолет:{self.id} - позиций закрылок не нашли')
         return result
@@ -278,9 +278,18 @@ class plane_datamine:
                     for item in crt_spped:
                         row = item
                         result.append(row)
-                    pass
-            else:
-                 logging.warning(f'Самолет:{self.id} - требуется уточнение по критическим скоростям закрылок')
+
+        if "Mass" in json_data and 'FlapsDestructionIndSpeedP' in json_data["Mass"]:
+            i = 0
+            list = json_data["Mass"]['FlapsDestructionIndSpeedP']
+            while i < len(list):
+                row = [0,0]
+                row[0] = list[i]
+                row[1] = list[i+1]
+                i = i+2
+                result.append(row)
+        else:
+            logging.warning(f'Самолет:{self.id} - требуется уточнение по критическим скоростям закрылок')
         return result
 
     def _crit_wing_overload(self, json_data):

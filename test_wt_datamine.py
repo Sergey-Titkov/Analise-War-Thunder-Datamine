@@ -1727,6 +1727,9 @@ if __name__ == "__main__":
         'yak-9', 'yak-9b', 'yak-9k', 'yak-9m', 'yak-9p', 'yak-9t', 'yak-9u', 'yak-9ut', 'yak_141', 'yak_3u', 'yp-38', 'z_10', 'z_1007_bis_serie3', 'z_1007_bis_serie5', 'z_11wa',
         'z_19', 'z_19e', 'z_9w', 'z_9wa'
     ]
+
+    #list_fms = [        'a-10a_early'        ]
+
     for plane_fm in list_fms:
         # Готовим для него строку
         cvs_row_data = {}
