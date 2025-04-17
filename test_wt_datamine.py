@@ -1738,19 +1738,44 @@ if __name__ == "__main__":
             print(f'Не найдена флайт модель: {plane_fm}')
         cvs_row_data['Length'] = f"{float(plane_datamine.length):.5f}"                          #1
 
-        cvs_row_data['WingSpan'] = ''
+        cvs_row_data['WingSpan'] = ''                                                           #2
         if len(plane_datamine.wing_span) == 1:
-            cvs_row_data['WingSpan'] = f"{float(plane_datamine.wing_span[0][1]):.5f}"           #2
+            cvs_row_data['WingSpan'] = f"{float(plane_datamine.wing_span[0][1]):.5f}"
         else:
             for i in range(0, len(plane_datamine.wing_span)):
                 cvs_row_data['WingSpan'] = f'{cvs_row_data['WingSpan']},{float(plane_datamine.wing_span[i][0]):.1f},{float(plane_datamine.wing_span[i][1]):.1f}'
             cvs_row_data['WingSpan'] = cvs_row_data['WingSpan'][1:]
 
-        cvs_row_data['WingArea'] = plane_datamine.wing_area                                     #3
+        cvs_row_data['WingArea'] = ''                                     #3
+        if len(plane_datamine.wing_area) == 1:
+            cvs_row_data['WingArea'] = f"{float(plane_datamine.wing_area[0][1]):.5f}"
+        else:
+            for i in range(0, len(plane_datamine.wing_area)):
+                cvs_row_data['WingArea'] = f'{cvs_row_data['WingArea']},{float(plane_datamine.wing_area[i][0]):.1f},{float(plane_datamine.wing_area[i][1]):.1f}'
+            cvs_row_data['WingArea'] = cvs_row_data['WingArea'][1:]
+
         cvs_row_data['EmptyMass'] = f"{float(plane_datamine.empty_mass):.5f}"                   #4
         cvs_row_data['MaxFuelMass'] = f"{float(plane_datamine.max_fuel_mass):.5f}"              #5
-        cvs_row_data['CritAirSpd'] = plane_datamine.crit_air_spd                                #6
-        cvs_row_data['CritAirSpdMach'] = plane_datamine.crit_air_spd_mach                       #7
+
+        cvs_row_data['CritAirSpd'] = ''                                                         #6
+        if len(plane_datamine.crit_air_spd) == 1:
+            cvs_row_data['CritAirSpd'] = f"{float(plane_datamine.crit_air_spd[0][1]):.5f}"
+        else:
+            for i in range(0, len(plane_datamine.crit_air_spd)):
+                cvs_row_data['CritAirSpd'] = f'{cvs_row_data['CritAirSpd']},{float(plane_datamine.crit_air_spd[i][0]):.1f},{float(plane_datamine.crit_air_spd[i][1]):.1f}'
+            cvs_row_data['CritAirSpd'] = cvs_row_data['CritAirSpd'][1:]
+
+
+        cvs_row_data['CritAirSpdMach'] = ''                                                     #7
+        if len(plane_datamine.crit_air_spd_mach) == 1:
+            cvs_row_data['CritAirSpdMach'] = f"{float(plane_datamine.crit_air_spd_mach[0][1]):.5f}"
+        else:
+            for i in range(0, len(plane_datamine.crit_air_spd_mach)):
+                cvs_row_data['CritAirSpdMach'] = f'{cvs_row_data['CritAirSpdMach']},{float(plane_datamine.crit_air_spd_mach[i][0]):.1f},{float(plane_datamine.crit_air_spd_mach[i][1]):.1f}'
+            cvs_row_data['CritAirSpdMach'] = cvs_row_data['CritAirSpdMach'][1:]
+
+
+
         cvs_row_data['CritGearSpd'] = f"{float(plane_datamine.crit_gear_spd):.5f}"              #8
 
         cvs_row_data['CombatFlaps'] = 0
@@ -1763,8 +1788,21 @@ if __name__ == "__main__":
             cvs_row_data['TakeoffFlaps'] = plane_datamine.flaps['Takeoff']
         cvs_row_data['TakeoffFlaps'] = f"{float(cvs_row_data['TakeoffFlaps']):.5f}"             #10
 
-        cvs_row_data['CritFlapsSpd'] = plane_datamine.crit_flaps_spd                            #11
-        cvs_row_data['CritWingOverload'] = plane_datamine.crit_wing_overload                    #12
+        cvs_row_data['CritFlapsSpd'] = ''                                                       #11
+        for i in range(0, len(plane_datamine.crit_flaps_spd)):
+            cvs_row_data['CritFlapsSpd'] = f'{cvs_row_data['CritFlapsSpd']},{float(plane_datamine.crit_flaps_spd[i][0]):.1f},{float(plane_datamine.crit_flaps_spd[i][1]):.1f}'
+        cvs_row_data['CritFlapsSpd'] = cvs_row_data['CritFlapsSpd'][1:]
+
+        cvs_row_data['CritWingOverload'] = ''                                                   #12
+        if len(plane_datamine.crit_wing_overload) == 1:
+            cvs_row_data['CritWingOverload'] = f"{float(plane_datamine.crit_wing_overload[0][1]):.1f},{float(plane_datamine.crit_wing_overload[0][2]):.1f}"
+        else:
+            for i in range(0, len(plane_datamine.crit_wing_overload)):
+                cvs_row_data['CritWingOverload'] = f'{cvs_row_data['CritWingOverload']},{float(plane_datamine.crit_wing_overload[i][0]):.1f},{float(plane_datamine.crit_wing_overload[i][1]):.1f},{float(plane_datamine.crit_wing_overload[i][2]):.1f}'
+            cvs_row_data['CritWingOverload'] = cvs_row_data['CritWingOverload'][1:]
+
+
+
         cvs_row_data['NumEngines'] = f"{float(plane_datamine.num_engines):.5f}"                 #13
 
         cvs_row_data['RPM'] = ''                                                                #14
@@ -1785,7 +1823,17 @@ if __name__ == "__main__":
 
         cvs_row_data['MaxNitro'] = f"{float(plane_datamine.max_nitro):.5f}"                    #15
         cvs_row_data['NitroConsum'] = f"{float(plane_datamine.nitro_consum):.5f}"              #16
+
         cvs_row_data['CritAoA'] = ''                                                           #17
+        if len(plane_datamine.crit_aoa) == 1:
+            item = plane_datamine.crit_aoa[0]
+            for i in range(1,5):
+                cvs_row_data['CritAoA'] = f"{cvs_row_data['CritAoA']},{float(item[i]):.1f}"
+        else:
+            for block in plane_datamine.crit_aoa:
+                for item in block:
+                    cvs_row_data['CritAoA'] = f"{cvs_row_data['CritAoA']},{float(item):.1f}"
+        cvs_row_data['CritAoA'] = cvs_row_data['CritAoA'][1:]
 
         cvs_data.append(cvs_row_data)
 

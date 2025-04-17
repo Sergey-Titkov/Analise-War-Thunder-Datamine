@@ -108,7 +108,7 @@ class plane_datamine:
         Для самолетов с изменяемой стреловидностью массив будет иметь вид: [[0,<размах крыла>], [<стреловидность от 0 до 1>, <размах крыла>]]
         """
         result = []
-        default = [0,0]
+        default = [0, 0]
         if 'Aerodynamics' in json_data and 'WingPlane' in json_data['Aerodynamics'] and 'Span' in json_data['Aerodynamics']['WingPlane']:
             default[1] = json_data['Aerodynamics']['WingPlane']['Span']
             result.append(default)
@@ -117,33 +117,48 @@ class plane_datamine:
                 default[1] = json_data['Wingspan']
                 result.append(default)
             else:
-              # Бывает и изменяемая стреловидность
-              if 'Aerodynamics' in json_data and 'WingPlaneSweep0' in json_data['Aerodynamics']:
-                for i in range(0, 5):
-                    row = [0,0]
-                    if f'WingPlaneSweep{i}' in json_data["Aerodynamics"]:
-                        row[0] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['Sweep']
-                        row[1] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['Span']
-                        result.append(row)
-              else:
-                logging.warning(f'Самолет:{self.id} - размах крыла не нашли')
+                # Бывает и изменяемая стреловидность
+                if 'Aerodynamics' in json_data and 'WingPlaneSweep0' in json_data['Aerodynamics']:
+                    for i in range(0, 5):
+                        row = [0, 0]
+                        if f'WingPlaneSweep{i}' in json_data["Aerodynamics"]:
+                            row[0] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['Sweep']
+                            row[1] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['Span']
+                            result.append(row)
+                else:
+                    logging.warning(f'Самолет:{self.id} - размах крыла не нашли')
 
         return result
 
     def _wing_area(self, json_data):
-        """Метод возвращает площадь крыла, если не удалось посчитать то возвращаем 0
+        """Метод возвращает массив пар значений в которых записан площадь крыла самолета в зависимости от того насколько у него разложено крыло.
+        Для обычных самолетов возвращается массив вида [[0,<площадь крыла>]], получить значение wing_span[0][1]
+        Для самолетов с изменяемой стреловидностью массив будет иметь вид: [[0,<площадь крыла>], [<стреловидность от 0 до 1>, <площадь крыла>]]
         """
-        result = 0
+        result = []
+        default = [0, 0]
         if 'Aerodynamics' in json_data and 'WingPlane' in json_data['Aerodynamics'] and 'Areas' in json_data['Aerodynamics']['WingPlane']:
-            result = json_data['Aerodynamics']['WingPlane']["Areas"]["LeftIn"] + json_data['Aerodynamics']['WingPlane']["Areas"]["LeftMid"] + \
-                     json_data['Aerodynamics']['WingPlane']["Areas"]["LeftOut"] + json_data['Aerodynamics']['WingPlane']["Areas"]["RightIn"] + \
-                     json_data['Aerodynamics']['WingPlane']["Areas"]["RightMid"] + json_data['Aerodynamics']['WingPlane']["Areas"]["RightOut"]
+            default[1] = json_data['Aerodynamics']['WingPlane']["Areas"]["LeftIn"] + json_data['Aerodynamics']['WingPlane']["Areas"]["LeftMid"] + \
+                         json_data['Aerodynamics']['WingPlane']["Areas"]["LeftOut"] + json_data['Aerodynamics']['WingPlane']["Areas"]["RightIn"] + \
+                         json_data['Aerodynamics']['WingPlane']["Areas"]["RightMid"] + json_data['Aerodynamics']['WingPlane']["Areas"]["RightOut"]
+            result.append(default)
         else:
             if 'Areas' in json_data:
-                result = json_data["Areas"]["WingLeftIn"] + json_data["Areas"]["WingLeftMid"] + json_data["Areas"]["WingLeftOut"] + json_data["Areas"][
+                default[1] = json_data["Areas"]["WingLeftIn"] + json_data["Areas"]["WingLeftMid"] + json_data["Areas"]["WingLeftOut"] + json_data["Areas"][
                     "WingRightIn"] + json_data["Areas"]["WingRightMid"] + json_data["Areas"]["WingRightOut"]
+                result.append(default)
             else:
-                logging.warning(f'Самолет:{self.id} - площадь крыла не нашли')
+                # Бывает и изменяемая стреловидность
+                if 'Aerodynamics' in json_data and 'WingPlaneSweep0' in json_data['Aerodynamics']:
+                    for i in range(0, 5):
+                        row = [0, 0]
+                        if f'WingPlaneSweep{i}' in json_data["Aerodynamics"]:
+                            node = json_data["Aerodynamics"][f'WingPlaneSweep{i}']["Areas"]
+                            row[0] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['Sweep']
+                            row[1] = node["LeftIn"] + node["LeftMid"] + node["LeftOut"] + node["RightIn"] + node["RightMid"] + node["RightOut"]
+                            result.append(row)
+                else:
+                    logging.warning(f'Самолет:{self.id} - площадь крыла не нашли')
         return result
 
     def _empty_mass(self, json_data):
@@ -168,31 +183,57 @@ class plane_datamine:
         return result
 
     def _crit_air_spd(self, json_data):
-        """Метод возвращает критическую скорость для самолёта в км/ч
-        Если определить параметр не удалось, то возвращаем 0
+        """Метод возвращает массив пар значений в которых записан критические скорости в км/ч в зависимости от того насколько у него разложено крыло.
+        Для обычных самолетов возвращается массив вида [[0,<критическая скорость>]], получить значение wing_span[0][1]
+        Для самолетов с изменяемой стреловидностью массив будет иметь вид: [[0,<критическая скорость>], [<стреловидность от 0 до 1>, <критическая скорость>]]
         """
-        result = 0
+        result = []
+        default = [0, 0]
         if 'Aerodynamics' in json_data and 'WingPlane' in json_data['Aerodynamics'] and 'Strength' in json_data['Aerodynamics']['WingPlane']:
-            result = int(json_data['Aerodynamics']['WingPlane']['Strength']['VNE'])
+            default[1] = int(json_data['Aerodynamics']['WingPlane']['Strength']['VNE'])
+            result.append(default)
         else:
             if 'Vne' in json_data:
-                result = int(json_data['Vne'])
+                default[1] = int(json_data['Vne'])
+                result.append(default)
             else:
-                logging.warning(f'Самолет:{self.id} - критическую скорость в км/час не нашли')
+                # Бывает и изменяемая стреловидность
+                if 'Aerodynamics' in json_data and 'WingPlaneSweep0' in json_data['Aerodynamics']:
+                    for i in range(0, 5):
+                        row = [0, 0]
+                        if f'WingPlaneSweep{i}' in json_data["Aerodynamics"]:
+                            row[0] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['Sweep']
+                            row[1] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['Strength']['VNE']
+                            result.append(row)
+                else:
+                    logging.warning(f'Самолет:{self.id} - критическую скорость в км/час не нашли')
         return result
 
     def _crit_air_spd_mach(self, json_data):
-        """Метод возвращает критическую скорость для самолёта в махах
-        Если определить параметр не удалось, то возвращаем 0
+        """Метод возвращает массив пар значений в которых записан критические скорости в махах в зависимости от того насколько у него разложено крыло.
+        Для обычных самолетов возвращается массив вида [[0,<критическая скорость>]], получить значение wing_span[0][1]
+        Для самолетов с изменяемой стреловидностью массив будет иметь вид: [[0,<критическая скорость>], [<стреловидность от 0 до 1>, <критическая скорость>]]
         """
-        result = 0
+        result = []
+        default = [0, 0]
         if 'Aerodynamics' in json_data and 'WingPlane' in json_data['Aerodynamics'] and 'Strength' in json_data['Aerodynamics']['WingPlane']:
-            result = (json_data['Aerodynamics']['WingPlane']['Strength']['MNE'])
+            default[1] = (json_data['Aerodynamics']['WingPlane']['Strength']['MNE'])
+            result.append(default)
         else:
             if 'VneMach' in json_data:
-                result = (json_data['VneMach'])
+                default[1] = (json_data['VneMach'])
+                result.append(default)
             else:
-                logging.warning(f'Самолет:{self.id} - критическую скорость в махах не нашли')
+                # Бывает и изменяемая стреловидность
+                if 'Aerodynamics' in json_data and 'WingPlaneSweep0' in json_data['Aerodynamics']:
+                    for i in range(0, 5):
+                        row = [0, 0]
+                        if f'WingPlaneSweep{i}' in json_data["Aerodynamics"]:
+                            row[0] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['Sweep']
+                            row[1] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['Strength']['MNE']
+                            result.append(row)
+                else:
+                    logging.warning(f'Самолет:{self.id} - критическую скорость в махах не нашли')
         return result
 
     def _crit_gear_spd(self, json_data):
@@ -223,39 +264,52 @@ class plane_datamine:
         return result
 
     def _crit_flaps_spd(self, json_data):
-        """Метод возвращает критическую скорость для позиции закрылок самолета в процентах
-        Словарь имеет вид: {'Combat':16, 'Takeoff':19}
-        Если определить параметр не удалось, то возвращаем пустой словарь
+        """Метод возвращает массив пар значений [<процент выпуска закрыло>, <критическая скорость км/ч>]
+        Если ничего не нашли, то пустой массив
         """
-        result = {}
-        #CritFlapsSpd = ''
-        #for i in range(0, 5):
-        #     if "Mass" in json_data and f'FlapsDestructionIndSpeedP{i}' in json_data["Mass"]:
-        #         if isinstance(json_data["Mass"][f'FlapsDestructionIndSpeedP{i}'][0], float):
-        #             CritFlapsSpd = f'{CritFlapsSpd},{json_data["Mass"][f'FlapsDestructionIndSpeedP{i}'][0]},{int(json_data["Mass"][f'FlapsDestructionIndSpeedP{i}'][1])}'
-        #         else:
-        #             print(f'{short_file_name} - требуется уточнение по критическим скоростям')
-        #             CritFlapsSpd = f'{CritFlapsSpd},{json_data["Mass"][f'FlapsDestructionIndSpeedP{i}'][0][0]},{int(json_data["Mass"][f'FlapsDestructionIndSpeedP{i}'][0][1])}'
-        #     else:
-        #         logging.warning(f'Самолет:{self.id} - требуется уточнение по критическим скоростям')
-        #         CritFlapsSpd = ''
-        #
-        # cvs_row_data['CritFlapsSpd'] = CritFlapsSpd
+        result = []
+        for i in range(0, 5):
+            if "Mass" in json_data and f'FlapsDestructionIndSpeedP{i}' in json_data["Mass"]:
+                crt_spped = json_data["Mass"][f'FlapsDestructionIndSpeedP{i}']
+                if isinstance(crt_spped[0], float):
+                    row = json_data["Mass"][f'FlapsDestructionIndSpeedP{i}']
+                    result.append(row)
+                else:
+                    for item in crt_spped:
+                        row = item
+                        result.append(row)
+                    pass
+            else:
+                 logging.warning(f'Самолет:{self.id} - требуется уточнение по критическим скоростям закрылок')
         return result
 
     def _crit_wing_overload(self, json_data):
-        """Метод возвращает скорость отваливания крыла самолета в км/ч
-        Если определить параметр не удалось, то возвращаем 0
+        """Метод возвращает параметры критического перегруза крыла в зависимости от угла раскрытия крыла
+        Для обычных самолетов возвращается массив вида [[0,<параметр 1>, <параметр 2>]]
+        Для самолетов с изменяемой стреловидностью массив будет иметь вид: [[0,<параметр 1>, <параметр 2>], [<стреловидность от 0 до 1>, <параметр 1>, <параметр 2>]]
         """
-        result = 0
-        if 'Aerodynamics' in json_data and 'WingPlane' in json_data['Aerodynamics'] and 'Strength' in \
-                json_data['Aerodynamics']['WingPlane']:
-            result = f'{json_data["Aerodynamics"]["WingPlane"]["Strength"]["CritOverload"][0]},{json_data["Aerodynamics"]["WingPlane"]["Strength"]["CritOverload"][1]}'
+        result = []
+        default = [0, 0, 0]
+        if 'Aerodynamics' in json_data and 'WingPlane' in json_data['Aerodynamics'] and 'Strength' in json_data['Aerodynamics']['WingPlane']:
+            default[1] = json_data["Aerodynamics"]["WingPlane"]["Strength"]["CritOverload"][0]
+            default[2] = json_data["Aerodynamics"]["WingPlane"]["Strength"]["CritOverload"][1]
+            result.append(default)
         else:
             if 'Mass' in json_data and "WingCritOverload" in json_data["Mass"]:
-                result = f'{json_data["Mass"]["WingCritOverload"][0]},{json_data["Mass"]["WingCritOverload"][1]}'
+                default[1] = json_data["Mass"]["WingCritOverload"][0]
+                default[2] = json_data["Mass"]["WingCritOverload"][1]
             else:
-                logging.warning(f'Самолет:{self.id} - скорость слома крыла не нашли')
+                # Бывает и изменяемая стреловидность
+                if 'Aerodynamics' in json_data and 'WingPlaneSweep0' in json_data['Aerodynamics']:
+                    for i in range(0, 5):
+                        row = [0, 0, 0]
+                        if f'WingPlaneSweep{i}' in json_data["Aerodynamics"]:
+                            row[0] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['Sweep']
+                            row[1] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['Strength']['CritOverload'][0]
+                            row[2] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['Strength']['CritOverload'][1]
+                            result.append(row)
+                else:
+                    logging.warning(f'Самолет:{self.id} - скорость слома крыла не нашли')
         return result
 
     def _num_engines(self, json_data):
@@ -278,7 +332,7 @@ class plane_datamine:
         result = {}
         if "EngineType0" in json_data:
             result['RPMMin'] = int(json_data["EngineType0"]["Main"]["RPMMin"])
-            result['RPMAfterburner'] =int(json_data["EngineType0"]["Main"]["RPMAfterburner"])
+            result['RPMAfterburner'] = int(json_data["EngineType0"]["Main"]["RPMAfterburner"])
             result['RPMMaxAllowed'] = int(json_data["EngineType0"]["Main"]["RPMMaxAllowed"])
         else:
             logging.warning(f'Самолет:{self.id} - обороты двигателя не нашли')
@@ -307,27 +361,46 @@ class plane_datamine:
         return result
 
     def _crit_aoa(self, json_data):
-        """Метод возвращает критические перегрузки
-        Если определить параметр не удалось, то {}
+        """Метод возвращает массив словарей с критическими перегрузками. Тот кто понял почему массив, тому респект
+        Для обычных самолетов возвращается массив вида [[0,<значение>, <значение>, <значение>, <значение>]]
+        Для самолетов с изменяемой стреловидностью массив будет иметь вид: [[0,<значение>, <значение>, <значение>, <значение>], [<стреловидность от 0 до 1>, <значение>, <значение>, <значение>, <значение>]]
         """
-        result = {}
-        # if 'Aerodynamics' in json_data and 'WingPlane' in json_data['Aerodynamics'] and 'FlapsPolar0' in \
-        #         json_data['Aerodynamics']['WingPlane'] and 'Aerodynamics' in json_data and 'WingPlane' in json_data[
-        #     'Aerodynamics'] and 'FlapsPolar1' in json_data['Aerodynamics']['WingPlane']:
-        #     cvs_row_data[
-        #         'CritAoA'] = f'{int(json_data["Aerodynamics"]["WingPlane"]["FlapsPolar0"]["alphaCritLow"])},{int(json_data["Aerodynamics"]["WingPlane"]["FlapsPolar1"]["alphaCritHigh"])},{int(json_data["Aerodynamics"]["WingPlane"]["FlapsPolar1"]["alphaCritLow"])}'
-        # else:
-        #     if 'Aerodynamics' in json_data and 'NoFlaps' in json_data['Aerodynamics']:
-        #         cvs_row_data[
-        #             'CritAoA'] = f'{int(json_data["Aerodynamics"]["NoFlaps"]["alphaCritLow"])},{int(json_data["Aerodynamics"]["FullFlaps"]["alphaCritHigh"])},{int(json_data["Aerodynamics"]["FullFlaps"]["alphaCritLow"])}'
-        #     else:
-        #         if 'Aerodynamics' in json_data and 'WingPlane' in json_data['Aerodynamics'] and "Polar" in \
-        #                 json_data["Aerodynamics"]["WingPlane"]:
-        #             cvs_row_data[
-        #                 'CritAoA'] = f'{int(json_data["Aerodynamics"]["WingPlane"]["Polar"]["NoFlaps"]["alphaCritLow"])},{int(json_data["Aerodynamics"]["WingPlane"]["Polar"]["FullFlaps"]["alphaCritHigh"])},{int(json_data["Aerodynamics"]["WingPlane"]["Polar"]["FullFlaps"]["alphaCritLow"])}'
-        #         else:
-        #             print(f'{short_file_name} - критические углы не нашли')
-        #             cvs_row_data['CritAoA'] = ''
+        result = []
+        default = [0, 0, 0, 0, 0]
+        if 'Aerodynamics' in json_data and 'WingPlane' in json_data['Aerodynamics'] and 'FlapsPolar0' in json_data['Aerodynamics']['WingPlane'] and 'Aerodynamics' in json_data and 'WingPlane' in json_data['Aerodynamics'] and 'FlapsPolar1' in json_data['Aerodynamics']['WingPlane']:
+            default[1] = json_data["Aerodynamics"]["WingPlane"]["FlapsPolar0"]["alphaCritHigh"]
+            default[2] = json_data["Aerodynamics"]["WingPlane"]["FlapsPolar0"]["alphaCritLow"]
+            default[3] = json_data["Aerodynamics"]["WingPlane"]["FlapsPolar1"]["alphaCritHigh"]
+            default[4] = json_data["Aerodynamics"]["WingPlane"]["FlapsPolar1"]["alphaCritLow"]
+            result.append(default)
+        else:
+            if 'Aerodynamics' in json_data and 'NoFlaps' in json_data['Aerodynamics']:
+                default[1] = json_data["Aerodynamics"]["NoFlaps"]["alphaCritHigh"]
+                default[2] = json_data["Aerodynamics"]["NoFlaps"]["alphaCritLow"]
+                default[3] = json_data["Aerodynamics"]["FullFlaps"]["alphaCritHigh"]
+                default[4] = json_data["Aerodynamics"]["FullFlaps"]["alphaCritLow"]
+                result.append(default)
+            else:
+                if 'Aerodynamics' in json_data and 'WingPlane' in json_data['Aerodynamics'] and "Polar" in json_data["Aerodynamics"]["WingPlane"]:
+                    default[1] = json_data["Aerodynamics"]["WingPlane"]["Polar"]["NoFlaps"]["alphaCritHigh"]
+                    default[2] = json_data["Aerodynamics"]["WingPlane"]["Polar"]["NoFlaps"]["alphaCritLow"]
+                    default[3] = json_data["Aerodynamics"]["WingPlane"]["Polar"]["FullFlaps"]["alphaCritLow"]
+                    default[4] = json_data["Aerodynamics"]["WingPlane"]["Polar"]["FullFlaps"]["alphaCritHigh"]
+                    result.append(default)
+                else:
+                    # Бывает и изменяемая стреловидность
+                    if 'Aerodynamics' in json_data and 'WingPlaneSweep0' in json_data['Aerodynamics']:
+                        for i in range(0, 5):
+                            row = [0, 0, 0, 0, 0]
+                            if f'WingPlaneSweep{i}' in json_data["Aerodynamics"]:
+                                row[0] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['Sweep']
+                                row[1] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['FlapsPolar0']["alphaCritHigh"]
+                                row[2] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['FlapsPolar0']["alphaCritLow"]
+                                row[3] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['FlapsPolar1']["alphaCritHigh"]
+                                row[4] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['FlapsPolar1']["alphaCritLow"]
+                                result.append(row)
+                    else:
+                        logging.warning(f'Самолет:{self.id} - критические углы не нашли')
         return result
 
     # Загружаем данные из флайт модели при создании объекта
