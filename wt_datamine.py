@@ -342,16 +342,31 @@ class plane_datamine:
         return result
 
     def _num_engines(self, json_data):
-        """Метод возвращает количество двигателей в самолете
+        """Метод возвращает количество двигателей в самолете, это просто квест какой то
         Если определить параметр не удалось, то возвращаем 0
         """
         result = int(0)
-        for i in range(0,5):
-            if f"EngineType{i}" in json_data:
-                if"External" in json_data[f"EngineType{i}"]:
-                    if not json_data[f"EngineType{i}"]["External"]:
+        for i in range(0,8):
+            if f"Engine{i}" in json_data:
+                engine = json_data[f"Engine{i}"]
+
+                # Проверям тип двигателя, он должен быть внешним
+                if "External" in engine:
+                    if not engine["External"]:
                         result += 1
                         continue
+
+                # Тогда смотрим тип его по типу двигателя
+                if "Type" in engine:
+                    if not json_data[f"EngineType{engine["Type"]}"]["External"]:
+                        result += 1
+                        continue
+
+                # Ну хоть пропеллер, то есть
+                if "Propellor" in engine:
+                    result += 1
+                    continue
+
             else:
                 break
 
