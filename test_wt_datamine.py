@@ -1423,7 +1423,7 @@ if __name__ == "__main__":
     # Тело cvs файла fm_data_db.csv
     cvs_data = []
 
-    # list_plane = ['c-47']
+    #list_plane = []
 
     for plane_id in list_plane:
         # Готовим для него строку
@@ -1728,7 +1728,7 @@ if __name__ == "__main__":
         'z_19', 'z_19e', 'z_9w', 'z_9wa'
     ]
 
-    #list_fms = [        'a-10a_early'        ]
+    #list_fms = ['a_129_int']
 
     for plane_fm in list_fms:
         # Готовим для него строку
@@ -1739,6 +1739,27 @@ if __name__ == "__main__":
             plane_datamine = wt_datamine.plane_datamine(dict_fm_to_id[plane_fm])
         else:
             print(f'Не найдена флайт модель: {plane_fm}')
+            tlb = {
+                # '2_m105_tat':'2_m105_tat',
+                # 'dummy_plane':'dummy_plane',
+                # 'db_3a_china':'db_3a_china',
+                # 'bf-110c-4':'bf-110c-4',
+                # 'a_129_a':'a_129_a',
+                'ah-64d':'ah_64d'
+                # 'alpha_jet_th_phase_1':'alpha_jet_th_phase_1',
+                # 'arado-234_hockey':'arado-234_hockey',
+                # 'avenger_mk1': 'avenger_mk1'
+            }
+            if plane_fm in ['f_5c_turkey', 'f13t_2s', 'hp52_hampden', 'j2m4', 'lagg_3_8','li-2_1938','mb_3','me-163b-1','mig_3_series_pod','pby-5a_late','spitfire_ix_lf_c','welkin_fmk1']:
+                continue
+
+            if plane_fm in tlb:
+                plane_fm = tlb[plane_fm]
+            plane_datamine = wt_datamine.plane_datamine(plane_fm)
+
+        #if plane_fm == 'a_129_a':
+        #    print(plane_fm,' ',dict_fm_to_id[plane_fm])
+
         cvs_row_data['Length'] = f"{float(plane_datamine.length):.5f}"                          #1
 
         cvs_row_data['WingSpan'] = ''                                                           #2
@@ -1758,7 +1779,9 @@ if __name__ == "__main__":
             cvs_row_data['WingArea'] = cvs_row_data['WingArea'][1:]
 
         cvs_row_data['EmptyMass'] = f"{float(plane_datamine.empty_mass):.5f}"                   #4
-        cvs_row_data['MaxFuelMass'] = f"{float(plane_datamine.max_fuel_mass):.5f}"              #5
+
+        # WTRTI округляет значение до двух знаков после запятой
+        cvs_row_data['MaxFuelMass'] = f"{float(plane_datamine.max_fuel_mass):.2f}000"           #5
 
         cvs_row_data['CritAirSpd'] = ''                                                         #6
         if len(plane_datamine.crit_air_spd) == 1:
@@ -1812,11 +1835,11 @@ if __name__ == "__main__":
         if 'RPMMin' in plane_datamine.rpm:
             cvs_row_data['RPM'] = plane_datamine.rpm['RPMMin']
 
-        if 'RPMAfterburner' in plane_datamine.rpm:
+        if 'RPMMax' in plane_datamine.rpm:
             if cvs_row_data['RPM'] == '':
-                cvs_row_data['RPM'] = plane_datamine.rpm['RPMAfterburner']
+                cvs_row_data['RPM'] = plane_datamine.rpm['RPMMax']
             else:
-                cvs_row_data['RPM'] = f'{cvs_row_data['RPM']},{plane_datamine.rpm['RPMAfterburner']}'
+                cvs_row_data['RPM'] = f'{cvs_row_data['RPM']},{plane_datamine.rpm['RPMMax']}'
 
         if 'RPMMaxAllowed' in plane_datamine.rpm:
             if cvs_row_data['RPM'] == '':

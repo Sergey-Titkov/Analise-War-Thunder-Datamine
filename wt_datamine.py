@@ -253,14 +253,26 @@ class plane_datamine:
         Если определить параметр не удалось, то возвращаем пустой словарь
         """
         result = {}
+
+        subs = {'a2d':[20,33]}
+
         if 'Aerodynamics' in json_data and "FlapsAxis" in json_data['Aerodynamics']:
             if json_data['Aerodynamics']["FlapsAxis"]["Combat"]["Presents"]:
                 result['Combat'] = json_data['Aerodynamics']["FlapsAxis"]["Combat"]["Flaps"] * 100
 
             if json_data['Aerodynamics']["FlapsAxis"]["Takeoff"]["Presents"]:
                 result['Takeoff'] = json_data['Aerodynamics']["FlapsAxis"]["Takeoff"]["Flaps"] * 100
-        else:
-            logging.warning(f'Самолет:{self.id} - позиций закрылок не нашли')
+            return result
+
+        if 'AvailableControls' in json_data:
+            if "hasCombatFlapsPosition" in json_data['AvailableControls'] and json_data['AvailableControls']["hasCombatFlapsPosition"]:
+                result['Combat'] = 20
+
+            if "hasTakeoffFlapsPosition" in json_data['AvailableControls'] and json_data['AvailableControls']["hasTakeoffFlapsPosition"]:
+                result['Takeoff'] = 33
+            return result
+
+        logging.warning(f'Самолет:{self.id} - позиций закрылок не нашли')
         return result
 
     def _crit_flaps_spd(self, json_data):
@@ -268,6 +280,13 @@ class plane_datamine:
         Если ничего не нашли, то пустой массив
         """
         result = []
+        # Сначала проверяем есть ли вообще управление закрылками
+        value = self._get_value_from_node(json_data, ["AvailableControls", "hasFlapsControl"])
+        if value is not None:
+            # Управления нет, возвращаем пустой массив и без разницы какие там значения в ФМ модели
+            if not value:
+                return result
+
         for i in range(0, 5):
             if "Mass" in json_data and f'FlapsDestructionIndSpeedP{i}' in json_data["Mass"]:
                 crt_spped = json_data["Mass"][f'FlapsDestructionIndSpeedP{i}']
@@ -307,6 +326,7 @@ class plane_datamine:
             if 'Mass' in json_data and "WingCritOverload" in json_data["Mass"]:
                 default[1] = json_data["Mass"]["WingCritOverload"][0]
                 default[2] = json_data["Mass"]["WingCritOverload"][1]
+                result.append(default)
             else:
                 # Бывает и изменяемая стреловидность
                 if 'Aerodynamics' in json_data and 'WingPlaneSweep0' in json_data['Aerodynamics']:
@@ -326,25 +346,46 @@ class plane_datamine:
         Если определить параметр не удалось, то возвращаем 0
         """
         result = int(0)
-        if "Engine0" in json_data:
-            result += 1
-
-        if "Engine1" in json_data:
-            result += 1
+        for i in range(0,5):
+            if f"EngineType{i}" in json_data:
+                if"External" in json_data[f"EngineType{i}"]:
+                    if not json_data[f"EngineType{i}"]["External"]:
+                        result += 1
+                        continue
+            else:
+                break
 
         return result
 
     def _rpm(self, json_data):
-        """Метод возвращает набор максимальных значений оборота двигателя, параметры читаюстся по первому двигателю :)
+        """Метод возвращает набор максимальных значений оборота двигателя, параметры читаются по первому двигателю
         Если определить параметр не удалось, то возвращаем 0
         """
         result = {}
         if "EngineType0" in json_data:
-            result['RPMMin'] = int(json_data["EngineType0"]["Main"]["RPMMin"])
-            result['RPMAfterburner'] = int(json_data["EngineType0"]["Main"]["RPMAfterburner"])
-            result['RPMMaxAllowed'] = int(json_data["EngineType0"]["Main"]["RPMMaxAllowed"])
-        else:
-            logging.warning(f'Самолет:{self.id} - обороты двигателя не нашли')
+            result['RPMMin']         = int(json_data["EngineType0"]["Main"]["RPMMin"])
+            result['RPMMax'] = int(json_data["EngineType0"]["Main"]["RPMMax"])
+            result['RPMMaxAllowed']  = int(json_data["EngineType0"]["Main"]["RPMMaxAllowed"])
+            return result
+
+        if "Engine0" in json_data and "Main" in json_data["Engine0"]:
+            node = json_data["Engine0"]["Main"]
+            if "RPMMin" in node:
+                result['RPMMin']         = int(json_data["Engine0"]["Main"]["RPMMin"])
+
+            # Это бывает массивом... Например: do_17z_2
+            if "RPMAfterburner" in json_data["Engine0"]["Main"]:
+                node = json_data["Engine0"]["Main"]["RPMMax"]
+                if isinstance(node, list):
+                    result['RPMMax'] = int(node[0])
+                else:
+                    result['RPMMax'] = int(node)
+
+            if "RPMMaxAllowed" in json_data["Engine0"]["Main"]:
+                result['RPMMaxAllowed']  = int(json_data["Engine0"]["Main"]["RPMMaxAllowed"])
+            return result
+
+        logging.warning(f'Самолет:{self.id} - обороты двигателя не нашли')
         return result
 
     def _max_nitro(self, json_data):
@@ -358,6 +399,20 @@ class plane_datamine:
             logging.warning(f'Самолет:{self.id} - нитро не нашли')
         return result
 
+    def _get_value_from_node(self,node,path):
+        """Метод возвращает значение ноды указанной в пути
+        Если нода не существует, то возвращается: None
+        Пример вызова: get_value_from_node(json_data,["Engine0","Afterburner","NitroConsumption"])
+        """
+        result = node
+        for node_name in path:
+            if node_name in result:
+                result = result[node_name]
+            else:
+                result = None
+                break;
+        return result
+
     def _nitro_consum(self, json_data):
         """Метод возвращает хрен его знает
         Если определить параметр не удалось, то возвращаем 0
@@ -365,8 +420,14 @@ class plane_datamine:
         result = 0
         if "EngineType0" in json_data:
             result = json_data["EngineType0"]["Afterburner"]["NitroConsumption"]
-        else:
-            logging.warning(f'Самолет:{self.id} - форсаж на закисии озота не нашли')
+            return result
+
+        value = self._get_value_from_node(json_data,["Engine0","Afterburner","NitroConsumption"])
+        if value is not None:
+            result = value
+            return result
+
+        logging.warning(f'Самолет:{self.id} - форсаж на закисии озота не нашли')
         return result
 
     def _crit_aoa(self, json_data):
@@ -420,7 +481,11 @@ class plane_datamine:
         with open(full_file_name, 'r') as file:
             main_data = json.load(file)
             self.flight_model = self._get_flight_model(main_data)
-            self.name = {'English': units_name[f'{self.id}_0']}
+            try:
+                self.name = {'English': units_name[f'{self.id}_0']}
+            except KeyError:
+                self.name = {'English': f'{self.id}_0'}
+
             self.type = self._get_type(main_data)
 
             # Читаем данные из конкретной флайт модели для самолета.
