@@ -551,8 +551,8 @@ class WTPlaneModel:
                 result = json_data['fmFile']
             #result = os.path.basename(result).replace('.blk', '')
         else:
-            logging.info(f'Самолет:{self._data['FmID']} - файл флайт модели не найден')
-            result = self._data['FmID']
+            logging.info(f'Самолет:{self._data['PlaneID']} - файл флайт модели не найден')
+            result = self._data['PlaneID']
         return result
 
     def __init__(self, plane_id = '', file_name = '', units_name = WTUnitsName()):
@@ -571,6 +571,8 @@ class WTPlaneModel:
             full_file_name = file_name
             plane_id = os.path.basename(full_file_name).replace('.blk', '')
 
+        self._data['PlaneID'] = plane_id
+
         # Открываем его, насчет закрытия не паримся, его закроет магия выхода за область видимиости
         with open(full_file_name, 'r') as file:
             main_data = json.load(file)
@@ -581,7 +583,6 @@ class WTPlaneModel:
                 self._data['Name'] = {'English': f'{plane_id}_0'}
             self._data['fmFile'] = self._get_flight_model(main_data)
             self._data['Type'] = self._get_type(main_data)
-            self._data['PlaneID'] = plane_id
 
     def __getitem__(self, key):
         """Вернуть значение по ключу."""
