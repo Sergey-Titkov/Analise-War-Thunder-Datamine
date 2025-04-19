@@ -46,95 +46,6 @@ class WTFlightModel:
     """Класс набор параметров из флайт модели самолета
     Формат использования WTFlightModel[<Имя параметра>]
     """
-    def __init__(self,file_name):
-        self._data = {}  # Внутренний словарь для хранения свойств
-
-    def __getitem__(self, key):
-        return self._data[key]
-
-    def __setitem__(self, key, value):
-        self._data[key] = value
-
-    def __iter__(self):
-        """Итерация по ключам."""
-        return iter(self._data)
-
-    def keys(self):
-        """Возвращает список ключей (аналогично dict.keys())."""
-        return self._data.keys()
-
-    def values(self):
-        """Возвращает список значений (аналогично dict.values())."""
-        return self._data.values()
-
-    def get(self, key, default=None):
-        """Возвращает значение по ключу или default, если ключа нет."""
-        return self._data.get(key, default)
-
-    def get_all(self):
-        """Возвращает все значения флайт модели"""
-        return self._data.copy()
-
-class WTPlaneModel:
-    pass
-
-units_name = WTUnitsName()
-
-
-# Класс возвращает информацию о самолете
-class plane_datamine:
-
-    # Определяем тип самолета.
-    def _get_type(self, json_data):
-        result = ''
-        # тут начались танцы с бубном, е...кие.
-        etalon_types = ['bomber', 'assault', 'fighter', 'helicopter']
-        json_types = ['typeBomber', 'typeAssault', 'typeFighter']
-        # Тип самолета это еще та угадайка
-
-        # Тип смотрим на то как себя ведет он по аишному, причем может вести себя сильно по разному :) списочком
-        if 'fightAiBehaviour' in json_data:
-            if isinstance(json_data['fightAiBehaviour'], list):
-                for item in json_data['fightAiBehaviour']:
-                    if item in json_types:
-                        result = item.replace('type', '').lower()
-                        break
-            else:
-                result = json_data['fightAiBehaviour']
-
-        # Продолжаем искать
-        if result not in etalon_types:
-            if 'type' in json_data:
-                if isinstance(json_data['type'], list):
-                    for item in json_data['type']:
-                        if item in json_types:
-                            result = item.replace('type', '').lower()
-                            break
-                else:
-                    result = json_data['type'].replace('type', '').lower()
-
-        # Проверям финальный вариант
-        if result not in etalon_types:
-            logging.warning(f'Самолет:{self.id} - тип самолета не найден')
-        return result
-
-    # Получаем флайт модель самолета
-    def _get_flight_model(self, json_data):
-        result = ''
-        # Внезапно ключа с записью про флайт модель может не быть
-        if 'fmFile' in json_data:
-            # Может быть несколько флайт моделей, но беру последнею, потому что для последней есть файл, по идее надо
-            # перебрать все файлы, но мне лень.
-            if isinstance(json_data['fmFile'], list):
-                result = json_data['fmFile'][1]
-            else:
-                result = json_data['fmFile']
-            result = os.path.basename(result).replace('.blk', '')
-        else:
-            logging.info(f'Самолет:{self.id} - файл флайт модели не найден')
-            result = self.id
-        return result
-
     def _get_length(self, json_data):
         """Метод возвращает длину самолета, если атрибут не найден возвращает 0
         """
@@ -530,6 +441,116 @@ class plane_datamine:
                     else:
                         logging.warning(f'Самолет:{self.id} - критические углы не нашли')
         return result
+
+    def __init__(self,file_name):
+        self._data = {}  # Внутренний словарь для хранения свойств
+        # Читаем данные из файла флайт модели для самолета.
+        with open(file_name, 'r') as fm_file:
+            # Прочитали данные из флайт модели
+            fm_data = json.load(fm_file)
+            self._data['Length'] = self._get_length(fm_data)
+            self._data['WingSpan'] = self._wing_span(fm_data)
+            self._data['WingArea'] = self._wing_area(fm_data)
+            self._data['EmptyMass'] = self._empty_mass(fm_data)
+            self._data['MaxFuelMass'] = self._max_fuel_mass(fm_data)
+            self._data['VNE'] = self._crit_air_spd(fm_data)
+            self._data['MNE'] = self._crit_air_spd_mach(fm_data)
+            self._data['VLO'] = self._crit_gear_spd(fm_data)
+            self._data['Flaps'] = self._flaps(fm_data)
+            self._data['VFE'] = self._crit_flaps_spd(fm_data)
+            self._data['CritWingOverload'] = self._crit_wing_overload(fm_data)
+            self._data['NumEngines'] = self._num_engines(fm_data)
+            self._data['RPMself.rpm'] = self._rpm(fm_data)
+            self._data['MaxNitro'] = self._max_nitro(fm_data)
+            self._data['NitroConsum'] = self._nitro_consum(fm_data)
+            self._data['CritAOA'] = self._crit_aoa(fm_data)
+
+    def __getitem__(self, key):
+        return self._data[key]
+
+    def __setitem__(self, key, value):
+        self._data[key] = value
+
+    def __iter__(self):
+        """Итерация по ключам."""
+        return iter(self._data)
+
+    def keys(self):
+        """Возвращает список ключей (аналогично dict.keys())."""
+        return self._data.keys()
+
+    def values(self):
+        """Возвращает список значений (аналогично dict.values())."""
+        return self._data.values()
+
+    def get(self, key, default=None):
+        """Возвращает значение по ключу или default, если ключа нет."""
+        return self._data.get(key, default)
+
+    def get_all(self):
+        """Возвращает все значения флайт модели"""
+        return self._data.copy()
+
+class WTPlaneModel:
+    pass
+
+units_name = WTUnitsName()
+
+
+# Класс возвращает информацию о самолете
+class plane_datamine:
+
+    # Определяем тип самолета.
+    def _get_type(self, json_data):
+        result = ''
+        # тут начались танцы с бубном, е...кие.
+        etalon_types = ['bomber', 'assault', 'fighter', 'helicopter']
+        json_types = ['typeBomber', 'typeAssault', 'typeFighter']
+        # Тип самолета это еще та угадайка
+
+        # Тип смотрим на то как себя ведет он по аишному, причем может вести себя сильно по разному :) списочком
+        if 'fightAiBehaviour' in json_data:
+            if isinstance(json_data['fightAiBehaviour'], list):
+                for item in json_data['fightAiBehaviour']:
+                    if item in json_types:
+                        result = item.replace('type', '').lower()
+                        break
+            else:
+                result = json_data['fightAiBehaviour']
+
+        # Продолжаем искать
+        if result not in etalon_types:
+            if 'type' in json_data:
+                if isinstance(json_data['type'], list):
+                    for item in json_data['type']:
+                        if item in json_types:
+                            result = item.replace('type', '').lower()
+                            break
+                else:
+                    result = json_data['type'].replace('type', '').lower()
+
+        # Проверям финальный вариант
+        if result not in etalon_types:
+            logging.warning(f'Самолет:{self.id} - тип самолета не найден')
+        return result
+
+    # Получаем флайт модель самолета
+    def _get_flight_model(self, json_data):
+        result = ''
+        # Внезапно ключа с записью про флайт модель может не быть
+        if 'fmFile' in json_data:
+            # Может быть несколько флайт моделей, но беру последнею, потому что для последней есть файл, по идее надо
+            # перебрать все файлы, но мне лень.
+            if isinstance(json_data['fmFile'], list):
+                result = json_data['fmFile'][1]
+            else:
+                result = json_data['fmFile']
+            result = os.path.basename(result).replace('.blk', '')
+        else:
+            logging.info(f'Самолет:{self.id} - файл флайт модели не найден')
+            result = self.id
+        return result
+
 
     # Загружаем данные из флайт модели при создании объекта
     def __init__(self, plane_name):
