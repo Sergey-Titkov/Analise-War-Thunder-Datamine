@@ -1430,10 +1430,10 @@ if __name__ == "__main__":
         cvs_row_name = {}
         cvs_row_data = {}
 
-        plane_datamine = wt_datamine.plane_datamine(plane_id)
+        plane_datamine = wt_datamine.WTPlaneFullInfo(plane_id)
 
         # Заполняем информацию по наименованию самолета
-        cvs_row_name['Name'] = plane_datamine.id
+        cvs_row_name['Name'] = plane_datamine['PlaneID']
 
         # Да, вседа в нижнем регистре
         # Ебанный ручной привод
@@ -1444,13 +1444,12 @@ if __name__ == "__main__":
             'fw-190a-5_cannons_tutorial': 'fw-190a-5_cannons_tutorial',
             'hurricane_mk1_late': 'hurricane_mk1_late'
         }
-        cvs_row_name['FmName'] = type_replace_lists.get(plane_datamine.id, plane_datamine.flight_model.lower())
-        dict_fm_to_id[cvs_row_name['FmName']] = plane_datamine.id
+        cvs_row_name['FmName'] = type_replace_lists.get(plane_datamine['PlaneID'], plane_datamine['fmFile'].lower().replace('fm/','').replace('.blk',''))
+        dict_fm_to_id[cvs_row_name['FmName']] = plane_datamine['PlaneID']
 
         # С названием самолетов, возня.
         # Убираем из строки все не ASCII символы
-        # tmp = plane_datamine.name['English'].replace('\xa0', ' ').encode('ascii', errors='ignore').decode()
-        tmp = plane_datamine.name['English'].replace('\xa0', ' ')
+        tmp = plane_datamine['Name']['English'].replace('\xa0', ' ')
 
         for i, c in enumerate(tmp):
             if 32 <= ord(c) <= 256:
@@ -1604,7 +1603,7 @@ if __name__ == "__main__":
         # Если была замена по имени самолета, то по стране уже не меняем
         if not replace_occur_by_plane_id:
             for key in add_pattern:
-                if plane_datamine.id.find(key) >= 0:
+                if plane_datamine['PlaneID'].find(key) >= 0:
                     tmp = f'{tmp} ({add_pattern[key]})'
                     break
 
@@ -1629,8 +1628,8 @@ if __name__ == "__main__":
             'do_217n_2': 'bomber',
             'fau-1': 'fighter'
         }
-        cvs_row_name['Type'] = type_replace_lists.get(plane_datamine.id,
-                                                      plane_datamine.type.replace('assault', 'strike'))
+        cvs_row_name['Type'] = type_replace_lists.get(plane_datamine['PlaneID'],
+                                                      plane_datamine['Type'].replace('assault', 'strike'))
 
         # Добавили строку к нашему тельцу cvs файла
         cvs_name.append(cvs_row_name)
@@ -1736,7 +1735,7 @@ if __name__ == "__main__":
 
         cvs_row_data['Name'] = plane_fm
         if plane_fm in dict_fm_to_id:
-            plane_datamine = wt_datamine.plane_datamine(dict_fm_to_id[plane_fm])
+            plane_datamine = wt_datamine.WTPlaneFullInfo(dict_fm_to_id[plane_fm])
         else:
             print(f'Не найдена флайт модель: {plane_fm}')
             tlb = {
@@ -1755,7 +1754,7 @@ if __name__ == "__main__":
 
             if plane_fm in tlb:
                 plane_fm = tlb[plane_fm]
-            plane_datamine = wt_datamine.plane_datamine(plane_fm)
+            plane_datamine = wt_datamine.WTPlaneFullInfo(plane_fm)
 
         #if plane_fm == 'a_129_a':
         #    print(plane_fm,' ',dict_fm_to_id[plane_fm])

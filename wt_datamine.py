@@ -2,31 +2,31 @@ import csv
 import json
 import logging
 import os
+from email.policy import default
 
 root_dir = '.\\War-Thunder-Datamine-master\\'
 lang_dir = f'{root_dir}\\lang.vromfs.bin_u\\lang\\'
 flightmodels_path = f'{root_dir}\\aces.vromfs.bin_u\\gamedata\\flightmodels\\'
 
-
 class WTUnitsName:
-    """Класс позволяет получить по ID техники ее наименование.
+    r"""Класс позволяет получить по ID техники ее наименование.
     Формат использования wt_units_name[<ID техники>]
-    Данные считываются из файла units.csv, обычно он находится в каталоге: .\War-Thunder-Datamine-master\lang.vromfs.bin_u\lang\
+    Данные считываются из файла units.csv, обычно он находится в каталоге:.\War-Thunder-Datamine-master\lang.vromfs.bin_u\lang\
     Если пути отличны от стандартных то можно вызвать конструктор и передать ему полный путь.
     """
 
     list_plane_name = []
 
-    def __init__(self,file_name=f'{lang_dir}\\units.csv'):
-        """
-        Загружает данные из файла units.csv, если файла нет, будет ошибка
+    def __init__(self,file_name=r"".join([lang_dir, "\\", r'units.csv'])):
+        r"""Загружает данные из файла units.csv, если файла нет, будет ошибка
         :param file_name: путь до файла units.csv, по умолчанию .\War-Thunder-Datamine-master\lang.vromfs.bin_u\lang\units.csv
         """
+        # Все из за этой херни
+        # SyntaxError: (unicode error) 'unicodeescape' codec can't decode bytes in position 785-786: truncated \uXXXX escape
         with open(file_name, newline='', encoding='utf-8') as csvfile:
             cvs_reader = csv.reader(csvfile, delimiter=';')
             # Пропустили заголовок
             next(cvs_reader)
-            is_header = True
             for row in cvs_reader:
                 self.list_plane_name.append(row)
 
@@ -36,7 +36,7 @@ class WTUnitsName:
         for row in self.list_plane_name:
             if key == row[0]:
                 result = row[1]
-                break;
+                break
         if result is not None:
             return result
         else:
@@ -53,7 +53,7 @@ class WTFlightModel:
         if 'Length' in json_data:
             result = json_data['Length']
         else:
-            logging.warning(f'Самолет:{self.id} - длину не нашли')
+            logging.warning(f'Самолет:{self._data['FmID']} - длину не нашли')
         return result
 
     def _wing_span(self, json_data):
@@ -80,7 +80,7 @@ class WTFlightModel:
                             row[1] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['Span']
                             result.append(row)
                 else:
-                    logging.warning(f'Самолет:{self.id} - размах крыла не нашли')
+                    logging.warning(f'Самолет:{self._data['FmID']} - размах крыла не нашли')
 
         return result
 
@@ -112,7 +112,7 @@ class WTFlightModel:
                             row[1] = node["LeftIn"] + node["LeftMid"] + node["LeftOut"] + node["RightIn"] + node["RightMid"] + node["RightOut"]
                             result.append(row)
                 else:
-                    logging.warning(f'Самолет:{self.id} - площадь крыла не нашли')
+                    logging.warning(f'Самолет:{self._data['FmID']} - площадь крыла не нашли')
         return result
 
     def _empty_mass(self, json_data):
@@ -122,7 +122,7 @@ class WTFlightModel:
         if 'Mass' in json_data and 'EmptyMass' in json_data['Mass']:
             result = int(json_data['Mass']['EmptyMass'])
         else:
-            logging.warning(f'Самолет:{self.id} - сухую массу не нашли')
+            logging.warning(f'Самолет:{self._data['FmID']} - сухую массу не нашли')
         return result
 
     def _max_fuel_mass(self, json_data):
@@ -133,7 +133,7 @@ class WTFlightModel:
         if 'Mass' in json_data and 'MaxFuelMass0' in json_data['Mass']:
             result = json_data['Mass']['MaxFuelMass0']
         else:
-            logging.warning(f'Самолет:{self.id} - максимальную массу топлива не нашли')
+            logging.warning(f'Самолет:{self._data['FmID']} - максимальную массу топлива не нашли')
         return result
 
     def _crit_air_spd(self, json_data):
@@ -160,7 +160,7 @@ class WTFlightModel:
                             row[1] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['Strength']['VNE']
                             result.append(row)
                 else:
-                    logging.warning(f'Самолет:{self.id} - критическую скорость в км/час не нашли')
+                    logging.warning(f'Самолет:{self._data['FmID']} - критическую скорость в км/час не нашли')
         return result
 
     def _crit_air_spd_mach(self, json_data):
@@ -187,7 +187,7 @@ class WTFlightModel:
                             row[1] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['Strength']['MNE']
                             result.append(row)
                 else:
-                    logging.warning(f'Самолет:{self.id} - критическую скорость в махах не нашли')
+                    logging.warning(f'Самолет:{self._data['FmID']} - критическую скорость в махах не нашли')
         return result
 
     def _crit_gear_spd(self, json_data):
@@ -198,7 +198,7 @@ class WTFlightModel:
         if 'Mass' in json_data and 'GearDestructionIndSpeed' in json_data['Mass']:
             result = json_data['Mass']['GearDestructionIndSpeed']
         else:
-            logging.warning(f'Самолет:{self.id} - скорость разрушения шасси не нашли')
+            logging.warning(f'Самолет:{self._data['FmID']} - скорость разрушения шасси не нашли')
         return result
 
     def _flaps(self, json_data):
@@ -207,8 +207,6 @@ class WTFlightModel:
         Если определить параметр не удалось, то возвращаем пустой словарь
         """
         result = {}
-
-        subs = {'a2d':[20,33]}
 
         if 'Aerodynamics' in json_data and "FlapsAxis" in json_data['Aerodynamics']:
             if json_data['Aerodynamics']["FlapsAxis"]["Combat"]["Presents"]:
@@ -226,7 +224,7 @@ class WTFlightModel:
                 result['Takeoff'] = 33
             return result
 
-        logging.warning(f'Самолет:{self.id} - позиций закрылок не нашли')
+        logging.warning(f'Самолет:{self._data['FmID']} - позиций закрылок не нашли')
         return result
 
     def _crit_flaps_spd(self, json_data):
@@ -254,15 +252,15 @@ class WTFlightModel:
 
         if "Mass" in json_data and 'FlapsDestructionIndSpeedP' in json_data["Mass"]:
             i = 0
-            list = json_data["Mass"]['FlapsDestructionIndSpeedP']
-            while i < len(list):
+            list_fds = json_data["Mass"]['FlapsDestructionIndSpeedP']
+            while i < len(list_fds):
                 row = [0,0]
-                row[0] = list[i]
-                row[1] = list[i+1]
+                row[0] = list_fds[i]
+                row[1] = list_fds[i+1]
                 i = i+2
                 result.append(row)
-        else:
-            logging.warning(f'Самолет:{self.id} - требуется уточнение по критическим скоростям закрылок')
+        if len(result)==0:
+            logging.warning(f'Самолет:{self._data['FmID']} - требуется уточнение по критическим скоростям закрылок')
         return result
 
     def _crit_wing_overload(self, json_data):
@@ -292,7 +290,7 @@ class WTFlightModel:
                             row[2] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['Strength']['CritOverload'][1]
                             result.append(row)
                 else:
-                    logging.warning(f'Самолет:{self.id} - скорость слома крыла не нашли')
+                    logging.warning(f'Самолет:{self._data['FmID']} - скорость слома крыла не нашли')
         return result
 
     def _num_engines(self, json_data):
@@ -354,7 +352,7 @@ class WTFlightModel:
                 result['RPMMaxAllowed']  = int(json_data["Engine0"]["Main"]["RPMMaxAllowed"])
             return result
 
-        logging.warning(f'Самолет:{self.id} - обороты двигателя не нашли')
+        logging.warning(f'Самолет:{self._data['FmID']} - обороты двигателя не нашли')
         return result
 
     def _max_nitro(self, json_data):
@@ -365,7 +363,7 @@ class WTFlightModel:
         if "Mass" in json_data and "MaxNitro" in json_data["Mass"]:
             result = json_data["Mass"]["MaxNitro"]
         else:
-            logging.warning(f'Самолет:{self.id} - нитро не нашли')
+            logging.warning(f'Самолет:{self._data['FmID']} - нитро не нашли')
         return result
 
     def _get_value_from_node(self,node,path):
@@ -379,7 +377,7 @@ class WTFlightModel:
                 result = result[node_name]
             else:
                 result = None
-                break;
+                break
         return result
 
     def _nitro_consum(self, json_data):
@@ -396,7 +394,7 @@ class WTFlightModel:
             result = value
             return result
 
-        logging.warning(f'Самолет:{self.id} - форсаж на закисии озота не нашли')
+        logging.warning(f'Самолет:{self._data['FmID']} - форсаж на закисии озота не нашли')
         return result
 
     def _crit_aoa(self, json_data):
@@ -439,7 +437,7 @@ class WTFlightModel:
                                 row[4] = json_data["Aerodynamics"][f'WingPlaneSweep{i}']['FlapsPolar1']["alphaCritLow"]
                                 result.append(row)
                     else:
-                        logging.warning(f'Самолет:{self.id} - критические углы не нашли')
+                        logging.warning(f'Самолет:{self._data['FmID']} - критические углы не нашли')
         return result
 
     def __init__(self,file_name):
@@ -448,6 +446,7 @@ class WTFlightModel:
         with open(file_name, 'r') as fm_file:
             # Прочитали данные из флайт модели
             fm_data = json.load(fm_file)
+            self._data['FmID'] = os.path.basename(file_name).replace('.blk', '')
             self._data['Length'] = self._get_length(fm_data)
             self._data['WingSpan'] = self._wing_span(fm_data)
             self._data['WingArea'] = self._wing_area(fm_data)
@@ -466,10 +465,8 @@ class WTFlightModel:
             self._data['CritAOA'] = self._crit_aoa(fm_data)
 
     def __getitem__(self, key):
+        """Вернуть значение по ключу."""
         return self._data[key]
-
-    def __setitem__(self, key, value):
-        self._data[key] = value
 
     def __iter__(self):
         """Итерация по ключам."""
@@ -492,16 +489,18 @@ class WTFlightModel:
         return self._data.copy()
 
 class WTPlaneModel:
-    pass
-
-units_name = WTUnitsName()
-
-
-# Класс возвращает информацию о самолете
-class plane_datamine:
+    """Класс набор параметров из модели самолета
+    Формат использования WTPlaneModel[<Имя параметра>]
+    """
+    _units_name = None
 
     # Определяем тип самолета.
     def _get_type(self, json_data):
+        """
+        Функция возвращает тип самолета, зачем он нужен не очень понятно
+        :param json_data: Данные считанные из файла модели самолета
+        :return: тип самолета
+        """
         result = ''
         # тут начались танцы с бубном, е...кие.
         etalon_types = ['bomber', 'assault', 'fighter', 'helicopter']
@@ -531,11 +530,16 @@ class plane_datamine:
 
         # Проверям финальный вариант
         if result not in etalon_types:
-            logging.warning(f'Самолет:{self.id} - тип самолета не найден')
+            logging.warning(f'Самолет:{self._data['FmID']} - тип самолета не найден')
         return result
 
     # Получаем флайт модель самолета
     def _get_flight_model(self, json_data):
+        """
+        Функция возвращает относительный путь до файла флайт модели, технически они все лежат в каталоге fm, но разве что-нибудь может пойти не так
+        :param json_data: Данные считанные из файла модели самолета
+        :return: относительный путь до флайт модели и файл флайт модели
+        """
         result = ''
         # Внезапно ключа с записью про флайт модель может не быть
         if 'fmFile' in json_data:
@@ -545,46 +549,109 @@ class plane_datamine:
                 result = json_data['fmFile'][1]
             else:
                 result = json_data['fmFile']
-            result = os.path.basename(result).replace('.blk', '')
+            #result = os.path.basename(result).replace('.blk', '')
         else:
-            logging.info(f'Самолет:{self.id} - файл флайт модели не найден')
-            result = self.id
+            logging.info(f'Самолет:{self._data['FmID']} - файл флайт модели не найден')
+            result = self._data['FmID']
         return result
 
+    def __init__(self, plane_id = '', file_name = '', units_name = WTUnitsName()):
+        """Загружает данные из модели самолета
+        :param plane_id: ID самолета, совпадает с именем файла(без расширения) модели самолета. Используется в том случае если расположение данных по умолчанию
+        :param file_name: Путь до файла с моделью самолета, если задано то будет использоваться оно.
+        :param units_name: Используется в том случае если расположение данных отличается от рекомендованных, тогда должно иметь вид: WTUnitsName(<Путь до файла units.csv>)
+        """
+        self._data = {}  # Внутренний словарь для хранения свойств
+        if WTPlaneModel._units_name is None:
+            WTPlaneModel._units_name = units_name
+            pass
 
-    # Загружаем данные из флайт модели при создании объекта
-    def __init__(self, plane_name):
-        self.id = plane_name
-        full_file_name = f'{flightmodels_path}\\{self.id}.blkx'
+        full_file_name = f'{flightmodels_path}\\{plane_id}.blkx'
+        if file_name != '':
+            full_file_name = file_name
+            plane_id = os.path.basename(full_file_name).replace('.blk', '')
+
         # Открываем его, насчет закрытия не паримся, его закроет магия выхода за область видимиости
         with open(full_file_name, 'r') as file:
             main_data = json.load(file)
             self.flight_model = self._get_flight_model(main_data)
             try:
-                self.name = {'English': WTUnitsName[f'{self.id}_0']}
+                self._data['Name'] = {'English': WTPlaneModel._units_name[f'{plane_id}_0']}
             except KeyError:
-                self.name = {'English': f'{self.id}_0'}
+                self._data['Name'] = {'English': f'{plane_id}_0'}
+            self._data['fmFile'] = self._get_flight_model(main_data)
+            self._data['Type'] = self._get_type(main_data)
+            self._data['PlaneID'] = plane_id
 
-            self.type = self._get_type(main_data)
+    def __getitem__(self, key):
+        """Вернуть значение по ключу."""
+        return self._data[key]
 
-            # Читаем данные из конкретной флайт модели для самолета.
-            fm_file_name = f'{flightmodels_path}\\fm\\{self.flight_model}.blkx'
-            with open(fm_file_name, 'r') as fm_file:
-                # Прочитали данные из флайт модели
-                fm_data = json.load(fm_file)
-                self.length = self._get_length(fm_data)
-                self.wing_span = self._wing_span(fm_data)
-                self.wing_area = self._wing_area(fm_data)
-                self.empty_mass = self._empty_mass(fm_data)
-                self.max_fuel_mass = self._max_fuel_mass(fm_data)
-                self.crit_air_spd = self._crit_air_spd(fm_data)
-                self.crit_air_spd_mach = self._crit_air_spd_mach(fm_data)
-                self.crit_gear_spd = self._crit_gear_spd(fm_data)
-                self.flaps = self._flaps(fm_data)
-                self.crit_flaps_spd = self._crit_flaps_spd(fm_data)
-                self.crit_wing_overload = self._crit_wing_overload(fm_data)
-                self.num_engines = self._num_engines(fm_data)
-                self.rpm = self._rpm(fm_data)
-                self.max_nitro = self._max_nitro(fm_data)
-                self.nitro_consum = self._nitro_consum(fm_data)
-                self.crit_aoa = self._crit_aoa(fm_data)
+    def __iter__(self):
+        """Итерация по ключам."""
+        return iter(self._data)
+
+    def keys(self):
+        """Возвращает список ключей (аналогично dict.keys())."""
+        return self._data.keys()
+
+    def values(self):
+        """Возвращает список значений (аналогично dict.values())."""
+        return self._data.values()
+
+    def get(self, key, default=None):
+        """Возвращает значение по ключу или default, если ключа нет."""
+        return self._data.get(key, default)
+
+    def get_all(self):
+        """Возвращает все значения флайт модели"""
+        return self._data.copy()
+
+# Класс возвращает информацию о самолете
+class WTPlaneFullInfo:
+    """ Класс возвращает полную информацию о самолете
+    Формат использования WTPlaneModel[<Имя параметра>]
+    """
+
+    def __init__(self, plane_id = '', file_name = '', units_name = WTUnitsName()):
+        """Загружает данные из модели самолета
+        :param plane_id: ID самолета, совпадает с именем файла(без расширения) модели самолета. Используется в том случае если расположение данных по умолчанию
+        :param file_name: Путь до файла с моделью самолета, если задано то будет использоваться оно.
+        :param units_name: Используется в том случае если расположение данных отличается от рекомендованных, тогда должно иметь вид: WTUnitsName(<Путь до файла units.csv>)
+        """
+        self._data = {}  # Внутренний словарь для хранения свойств
+
+        plane_model  = WTPlaneModel(plane_id = plane_id, file_name = file_name, units_name = units_name)
+        self._data = plane_model.get_all()
+
+        fm_file_path = f'{flightmodels_path}'
+        if file_name != '':
+            fm_file_path = os.path.dirname(file_name)
+
+        fm_file_path = f'{fm_file_path}\\{self._data['fmFile']}'
+        flight_model = WTFlightModel(fm_file_path.replace('.blk','.blkx'))
+        self._data.update(flight_model.get_all())
+
+    def __getitem__(self, key):
+        """Вернуть значение по ключу."""
+        return self._data[key]
+
+    def __iter__(self):
+        """Итерация по ключам."""
+        return iter(self._data)
+
+    def keys(self):
+        """Возвращает список ключей (аналогично dict.keys())."""
+        return self._data.keys()
+
+    def values(self):
+        """Возвращает список значений (аналогично dict.values())."""
+        return self._data.values()
+
+    def get(self, key, default=None):
+        """Возвращает значение по ключу или default, если ключа нет."""
+        return self._data.get(key, default)
+
+    def get_all(self):
+        """Возвращает все значения флайт модели"""
+        return self._data.copy()
