@@ -1418,7 +1418,7 @@ list_plane = [
     'z_9wa'
 ]
 
-units_name = wt_datamine.units_name()
+units_name = wt_datamine.WTUnitsName()
 
 # Тело cvs файла fm_names_db.csv
 cvs_name = []

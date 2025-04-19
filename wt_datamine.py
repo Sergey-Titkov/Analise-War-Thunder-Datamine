@@ -8,19 +8,27 @@ lang_dir = f'{root_dir}\\lang.vromfs.bin_u\\lang\\'
 flightmodels_path = f'{root_dir}\\aces.vromfs.bin_u\\gamedata\\flightmodels\\'
 
 
-class units_name:
+class WTUnitsName:
+    """Класс позволяет получить по ID техники ее наименование.
+    Формат использования wt_units_name[<ID техники>]
+    Данные считываются из файла units.csv, обычно он находится в каталоге: .\War-Thunder-Datamine-master\lang.vromfs.bin_u\lang\
+    Если пути отличны от стандартных то можно вызвать конструктор и передать ему полный путь.
+    """
+
     list_plane_name = []
 
-    def __init__(self):
-        with open(f'{lang_dir}\\units.csv', newline='', encoding='utf-8') as csvfile:
-            spamreader = csv.reader(csvfile, delimiter=';')
-            is_header = True;
-            for row in spamreader:
-                if is_header:
-                    self.header = row
-                    is_header = False;
-                else:
-                    self.list_plane_name.append(row)
+    def __init__(self,file_name=f'{lang_dir}\\units.csv'):
+        """
+        Загружает данные из файла units.csv, если файла нет, будет ошибка
+        :param file_name: путь до файла units.csv, по умолчанию .\War-Thunder-Datamine-master\lang.vromfs.bin_u\lang\units.csv
+        """
+        with open(file_name, newline='', encoding='utf-8') as csvfile:
+            cvs_reader = csv.reader(csvfile, delimiter=';')
+            # Пропустили заголовок
+            next(cvs_reader)
+            is_header = True
+            for row in cvs_reader:
+                self.list_plane_name.append(row)
 
     def __getitem__(self, key):
         # Проверяем, есть ли ключ в списке
@@ -34,8 +42,43 @@ class units_name:
         else:
             raise KeyError(f"Ключ '{key}' не найден.")
 
+class WTFlightModel:
+    """Класс набор параметров из флайт модели самолета
+    Формат использования WTFlightModel[<Имя параметра>]
+    """
+    def __init__(self,file_name):
+        self._data = {}  # Внутренний словарь для хранения свойств
 
-units_name = units_name()
+    def __getitem__(self, key):
+        return self._data[key]
+
+    def __setitem__(self, key, value):
+        self._data[key] = value
+
+    def __iter__(self):
+        """Итерация по ключам."""
+        return iter(self._data)
+
+    def keys(self):
+        """Возвращает список ключей (аналогично dict.keys())."""
+        return self._data.keys()
+
+    def values(self):
+        """Возвращает список значений (аналогично dict.values())."""
+        return self._data.values()
+
+    def get(self, key, default=None):
+        """Возвращает значение по ключу или default, если ключа нет."""
+        return self._data.get(key, default)
+
+    def get_all(self):
+        """Возвращает все значения флайт модели"""
+        return self._data.copy()
+
+class WTPlaneModel:
+    pass
+
+units_name = WTUnitsName()
 
 
 # Класс возвращает информацию о самолете
@@ -497,7 +540,7 @@ class plane_datamine:
             main_data = json.load(file)
             self.flight_model = self._get_flight_model(main_data)
             try:
-                self.name = {'English': units_name[f'{self.id}_0']}
+                self.name = {'English': WTUnitsName[f'{self.id}_0']}
             except KeyError:
                 self.name = {'English': f'{self.id}_0'}
 

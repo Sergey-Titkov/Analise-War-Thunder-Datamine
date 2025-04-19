@@ -24,7 +24,7 @@ for file in res:
     full_file_name = file
     short_file_name = file.replace('.\\flightmodels\\', '')
 
-    # Признак того, что надо обратботать файл, если массив is_process_file пустой то всегда истина
+    # Признак того, что надо обработать файл, если массив is_process_file пустой то всегда истина
     is_process_file = not list_plane
 
     # Если массив не пуст то ищем имя файла без расширения в списке самолетов
