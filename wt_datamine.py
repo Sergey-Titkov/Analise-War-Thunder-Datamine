@@ -2,7 +2,6 @@ import csv
 import json
 import logging
 import os
-from email.policy import default
 
 root_dir = '.\\War-Thunder-Datamine-master\\'
 lang_dir = f'{root_dir}\\lang.vromfs.bin_u\\lang\\'
