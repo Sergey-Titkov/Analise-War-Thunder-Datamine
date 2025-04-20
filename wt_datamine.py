@@ -446,7 +446,7 @@ class WTFlightModel:
         with open(file_name, 'r') as fm_file:
             # Прочитали данные из флайт модели
             fm_data = json.load(fm_file)
-            self._data['FmID'] = os.path.basename(file_name).replace('.blk', '')
+            self._data['FmID'] = os.path.basename(file_name).replace('.blkx', '')
             self._data['Length'] = self._get_length(fm_data)
             self._data['WingSpan'] = self._wing_span(fm_data)
             self._data['WingArea'] = self._wing_area(fm_data)
@@ -459,10 +459,10 @@ class WTFlightModel:
             self._data['VFE'] = self._crit_flaps_spd(fm_data)
             self._data['CritWingOverload'] = self._crit_wing_overload(fm_data)
             self._data['NumEngines'] = self._num_engines(fm_data)
-            self._data['RPMself.rpm'] = self._rpm(fm_data)
+            self._data['RPM'] = self._rpm(fm_data)
             self._data['MaxNitro'] = self._max_nitro(fm_data)
             self._data['NitroConsum'] = self._nitro_consum(fm_data)
-            self._data['CritAOA'] = self._crit_aoa(fm_data)
+            self._data['CritAoA'] = self._crit_aoa(fm_data)
 
     def __getitem__(self, key):
         """Вернуть значение по ключу."""
@@ -530,7 +530,7 @@ class WTPlaneModel:
 
         # Проверям финальный вариант
         if result not in etalon_types:
-            logging.warning(f'Самолет:{self._data['FmID']} - тип самолета не найден')
+            logging.warning(f'Самолет:{self._data['PlaneID']} - тип самолета не найден')
         return result
 
     # Получаем флайт модель самолета
@@ -552,7 +552,10 @@ class WTPlaneModel:
             #result = os.path.basename(result).replace('.blk', '')
         else:
             logging.info(f'Самолет:{self._data['PlaneID']} - файл флайт модели не найден')
-            result = self._data['PlaneID']
+            result = f'fm/{self._data['PlaneID']}'
+
+        # Вот эта фигня объяснятся просто, в некоторых файлах забыли добавить .blk поэтому мне приходится все выглаживать гадая на шанике
+        result = f'{result.replace('.blk', '')}.blkx'
         return result
 
     def __init__(self, plane_id = '', file_name = '', units_name = WTUnitsName()):
@@ -630,7 +633,7 @@ class WTPlaneFullInfo:
             fm_file_path = os.path.dirname(file_name)
 
         fm_file_path = f'{fm_file_path}\\{self._data['fmFile']}'
-        flight_model = WTFlightModel(fm_file_path.replace('.blk','.blkx'))
+        flight_model = WTFlightModel(fm_file_path)
         self._data.update(flight_model.get_all())
 
     def __getitem__(self, key):

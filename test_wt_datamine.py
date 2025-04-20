@@ -1444,8 +1444,8 @@ if __name__ == "__main__":
             'fw-190a-5_cannons_tutorial': 'fw-190a-5_cannons_tutorial',
             'hurricane_mk1_late': 'hurricane_mk1_late'
         }
-        cvs_row_name['FmName'] = type_replace_lists.get(plane_datamine['PlaneID'], plane_datamine['fmFile'].lower().replace('fm/','').replace('.blk',''))
-        dict_fm_to_id[cvs_row_name['FmName']] = plane_datamine['PlaneID']
+        cvs_row_name['FmName'] = type_replace_lists.get(plane_datamine['PlaneID'], plane_datamine['fmFile'].lower().replace('fm/','').replace('.blkx',''))
+        dict_fm_to_id[plane_datamine['fmFile'].lower().replace('fm/','').replace('.blkx','')] = plane_datamine['PlaneID']
 
         # С названием самолетов, возня.
         # Убираем из строки все не ASCII символы
